@@ -74,7 +74,31 @@ public class GameApiImpl implements GameAPI {
     }
 
     public MoveResponse move(int gameId, int submarineId, double speed, double turn) {
-        return null;
+        MoveRequest move = new MoveRequest(speed, turn);
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonToSend = "";
+        try {
+            jsonToSend = mapper.writeValueAsString(move);
+        } catch (Exception e){
+            System.out.println("Error creating move request for game: " + gameId + " submarine: " + submarineId);
+        }
+
+        if (jsonToSend == "") {
+            return null;
+        }
+
+        String response = HttpRequest.post(SERVER_URL + "game/" + gameId + "/" + submarineId)
+                         .send(jsonToSend)
+                         .header(TOKEN_HEADER_NAME, TOKEN_HEADER_VALUE).body();
+
+        MoveResponse moveResponse = null;
+        try {
+            moveResponse = mapper.readValue(response, MoveResponse.class);
+        } catch (Exception e) {
+            System.out.println("Error retrieving move response for game: " + gameId + ", Exception: " + e.getMessage());
+        }
+
+        return moveResponse;
     }
 
     public ShootResponse shoot(int gameId, int submarineId, double angle) {
