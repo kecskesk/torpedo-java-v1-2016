@@ -16,13 +16,13 @@ public interface GameAPI {
 
     GameInfoResponse gameInfo(int gameId);
 
-    void submarines(); // TODO
+    SubmarinesResponse submarines(int gameId);
 
     MoveResponse move(int gameId, int submarineId, double speed, double turn);
 
     ShootResponse shoot(int gameId, int submarineId, double angle);
 
-    void sonar(); // TODO
+    SonarResponse sonar(int gameId, int submarineId);
 
     ExtendSonarResponse extendSonar(int gameId, int submarineId);
 

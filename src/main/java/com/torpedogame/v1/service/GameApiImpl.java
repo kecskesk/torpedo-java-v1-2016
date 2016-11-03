@@ -9,6 +9,7 @@ public class GameApiImpl implements GameAPI {
     private static final String TOKEN_HEADER_NAME = "TEAMTOKEN";
     private static final String TOKEN_HEADER_VALUE = "355CCC4899499A19FB06D319744CB785";
 
+    @Override
     public CreateGameResponse createGame() {
         String response = HttpRequest.post(SERVER_URL + "game")
                                 .header(TOKEN_HEADER_NAME, TOKEN_HEADER_VALUE).body();
@@ -24,6 +25,7 @@ public class GameApiImpl implements GameAPI {
         return createGame;
     }
 
+    @Override
     public GameListResponse gameList() {
         String response = HttpRequest.get(SERVER_URL + "game")
                 .header(TOKEN_HEADER_NAME, TOKEN_HEADER_VALUE).body();
@@ -39,6 +41,7 @@ public class GameApiImpl implements GameAPI {
         return gameList;
     }
 
+    @Override
     public JoinGameResponse joinGame(int gameId) {
         String response = HttpRequest.post(SERVER_URL + "game/" + gameId)
                 .header(TOKEN_HEADER_NAME, TOKEN_HEADER_VALUE).body();
@@ -54,6 +57,7 @@ public class GameApiImpl implements GameAPI {
         return joinGame;
     }
 
+    @Override
     public GameInfoResponse gameInfo(int gameId) {
         String response = HttpRequest.get(SERVER_URL + "game/" + gameId)
                 .header(TOKEN_HEADER_NAME, TOKEN_HEADER_VALUE).body();
@@ -69,10 +73,23 @@ public class GameApiImpl implements GameAPI {
         return gameInfo;
     }
 
-    public void submarines() {
+    @Override
+    public SubmarinesResponse submarines(int gameId) {
+        String response = HttpRequest.get(SERVER_URL + "game/" + gameId + "/submarine")
+                .header(TOKEN_HEADER_NAME, TOKEN_HEADER_VALUE).body();
 
+        ObjectMapper mapper = new ObjectMapper();
+        SubmarinesResponse submarines = null;
+        try {
+            submarines = mapper.readValue(response, SubmarinesResponse.class);
+        } catch (Exception e) {
+            System.out.println("Error retrieving submarine list for game: " + gameId + ", Exception: " + e.getMessage());
+        }
+
+        return submarines;
     }
 
+    @Override
     public MoveResponse move(int gameId, int submarineId, double speed, double turn) {
         MoveRequest move = new MoveRequest(speed, turn);
         ObjectMapper mapper = new ObjectMapper();
@@ -83,11 +100,11 @@ public class GameApiImpl implements GameAPI {
             System.out.println("Error creating move request for game: " + gameId + " submarine: " + submarineId);
         }
 
-        if (jsonToSend == "") {
+        if ("".equals(jsonToSend)) {
             return null;
         }
 
-        String response = HttpRequest.post(SERVER_URL + "game/" + gameId + "/" + submarineId)
+        String response = HttpRequest.post(SERVER_URL + "game/" + gameId + "/submarine/" + submarineId + "/move")
                          .send(jsonToSend)
                          .header(TOKEN_HEADER_NAME, TOKEN_HEADER_VALUE).body();
 
@@ -101,15 +118,64 @@ public class GameApiImpl implements GameAPI {
         return moveResponse;
     }
 
+    @Override
     public ShootResponse shoot(int gameId, int submarineId, double angle) {
-        return null;
+        ShootRequest shoot = new ShootRequest(angle);
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonToSend = "";
+        try {
+            jsonToSend = mapper.writeValueAsString(shoot);
+        } catch (Exception e){
+            System.out.println("Error creating shoot request for game: " + gameId + " submarine: " + submarineId + ", Exception: " + e.getMessage());
+        }
+
+        if ("".equals(jsonToSend)) {
+            return null;
+        }
+
+        String response = HttpRequest.post(SERVER_URL + "game/" + gameId + "/submarine/" + submarineId + "/shoot")
+                         .send(jsonToSend)
+                         .header(TOKEN_HEADER_NAME, TOKEN_HEADER_VALUE).body();
+
+        ShootResponse shootResponse = null;
+        try {
+            shootResponse = mapper.readValue(response, ShootResponse.class);
+        } catch (Exception e) {
+            System.out.println("Error retrieving shoot response for game: " + gameId + ", Exception: " + e.getMessage());
+        }
+
+        return shootResponse;
     }
 
-    public void sonar() {
+    @Override
+    public SonarResponse sonar(int gameId, int submarineId) {
+        String response = HttpRequest.get(SERVER_URL + "game/" + gameId + "/submarine/" + submarineId + "/sonar")
+                .header(TOKEN_HEADER_NAME, TOKEN_HEADER_VALUE).body();
 
+        ObjectMapper mapper = new ObjectMapper();
+        SonarResponse sonar = null;
+        try {
+            sonar = mapper.readValue(response, SonarResponse.class);
+        } catch (Exception e) {
+            System.out.println("Error retrieving sonar for submarine: " + submarineId + ", Exception: " + e.getMessage());
+        }
+
+        return sonar;
     }
 
+    @Override
     public ExtendSonarResponse extendSonar(int gameId, int submarineId) {
-        return null;
+        String response = HttpRequest.post(SERVER_URL + "game/" + gameId + "/submarine/" + submarineId + "/sonar")
+                .header(TOKEN_HEADER_NAME, TOKEN_HEADER_VALUE).body();
+
+        ObjectMapper mapper = new ObjectMapper();
+        ExtendSonarResponse extendSonar = null;
+        try {
+            extendSonar = mapper.readValue(response, ExtendSonarResponse.class);
+        } catch (Exception e) {
+            System.out.println("Error retrieving extend sonar for submarine: " + submarineId + ", Exception: " + e.getMessage());
+        }
+
+        return extendSonar;
     }
 }
