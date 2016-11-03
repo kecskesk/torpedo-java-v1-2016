@@ -8,6 +8,7 @@ import com.torpedogame.v1.model.protocol.GameInfoResponse;
 import com.torpedogame.v1.model.protocol.GameListResponse;
 import com.torpedogame.v1.model.protocol.JoinGameResponse;
 import com.torpedogame.v1.service.GameAPI;
+import com.torpedogame.v1.utility.NavigationComputer;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -42,6 +43,14 @@ public class App extends TimerTask
 
         // Get game-info
         gameInfoResponse = gameEngine.gameInfo(createdGame.getId());
+
+        // Setup configuration
+        NavigationComputer.setMaxSteeringPerRound(gameInfoResponse.getGame().getMapConfiguration().getMaxSteeringPerRound());
+        NavigationComputer.setMaxAccelerationPerRound(gameInfoResponse.getGame().getMapConfiguration().getMaxAccelerationPerRound());
+        NavigationComputer.setMaxSpeed(gameInfoResponse.getGame().getMapConfiguration().getMaxSpeed());
+        // MinSpeed is not originated from the GameInfo, 0 was measured by hand.
+        // By increasing this, it may be used to avoid slowing down in high(e.g. 180) degree turns.
+        NavigationComputer.setMinSpeed(0.0);
 
         // Start executing the steps for each round
         // This will start the execution immediately, if a little delay is needed,
