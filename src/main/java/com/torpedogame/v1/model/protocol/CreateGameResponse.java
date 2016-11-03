@@ -10,12 +10,6 @@ public class CreateGameResponse {
 
     public CreateGameResponse(){}
 
-    public CreateGameResponse(int code, int id, String message) {
-        this.code = code;
-        this.id = id;
-        this.message = message;
-    }
-
     public int getCode() {
         return code;
     }
