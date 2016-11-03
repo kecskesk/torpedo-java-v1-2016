@@ -3,28 +3,18 @@ package com.torpedogame.v1.model.protocol;
 /**
  * Created by Dombi Soma on 03/11/2016.
  */
-public class MoveResponse {
-    private String message;
-    private int code;
+public class MoveResponse extends Response {
 
-    public MoveResponse(int code, String message) {
-        this.code = code;
-        this.message = message;
+    public MoveResponse(){
+        super();
     }
 
-    public int getCode() {
-        return code;
+    public MoveResponse(String message, int code) {
+        super(message, code);
     }
 
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
+    @Override
+    public String toString(){
+        return getCode() + " " + getMessage();
     }
 }

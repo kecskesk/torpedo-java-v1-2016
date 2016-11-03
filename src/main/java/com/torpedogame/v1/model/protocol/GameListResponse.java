@@ -5,20 +5,18 @@ import java.util.List;
 /**
  * Created by Dombi Soma on 03/11/2016.
  */
-public class GameListResponse {
+public class GameListResponse extends Response {
+
     private List<Integer> games;
-    private String message;
-    private int code;
-
-    public GameListResponse(){}
-
-    public int getCode() {
-        return code;
+    
+    public GameListResponse(){
+        super();
     }
 
-    public void setCode(int code) {
-        this.code = code;
+    public GameListResponse(String message, int code) {
+        super(message, code);
     }
+
 
     public List<Integer> getGames() {
         return games;
@@ -28,11 +26,8 @@ public class GameListResponse {
         this.games = games;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
+    @Override
+    public String toString(){
+        return getCode() + " " + getMessage();
     }
 }

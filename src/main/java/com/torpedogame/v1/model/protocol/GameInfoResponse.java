@@ -6,35 +6,24 @@ import com.torpedogame.v1.model.game_control.MapConfiguration;
 /**
  * Created by Dombi Soma on 03/11/2016.
  */
-public class GameInfoResponse {
+public class GameInfoResponse extends Response {
     private Game game;
-    private String message;
-    private int code;
 
-    public GameInfoResponse(){}
+    public GameInfoResponse(){
+        super();
+    }
 
+    public GameInfoResponse(Game game, String message, int code) {
+        super(message, code);
+        this.game = game;
+    }
+    
     public Game getGame() {
         return game;
     }
 
     public void setGame(Game game) {
         this.game = game;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
     }
 
     public class Game {

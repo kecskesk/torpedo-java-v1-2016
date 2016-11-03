@@ -3,25 +3,18 @@ package com.torpedogame.v1.model.protocol;
 /**
  * Created by Dombi Soma on 03/11/2016.
  */
-public class JoinGameResponse {
-    private String message;
-    private int code;
+public class JoinGameResponse extends Response {
 
-    public JoinGameResponse(){}
-
-    public int getCode() {
-        return code;
+    public JoinGameResponse(){
+        super();
     }
 
-    public void setCode(int code) {
-        this.code = code;
+    public JoinGameResponse(String message, int code) {
+        super(message, code);
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
+    @Override
+    public String toString(){
+        return getCode() + " " + getMessage();
     }
 }

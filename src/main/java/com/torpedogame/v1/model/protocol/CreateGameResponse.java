@@ -3,19 +3,16 @@ package com.torpedogame.v1.model.protocol;
 /**
  * Created by Dombi Soma on 03/11/2016.
  */
-public class CreateGameResponse {
-    private String message;
-    private int code;
+public class CreateGameResponse extends Response {
     private int id;
 
-    public CreateGameResponse(){}
-
-    public int getCode() {
-        return code;
+    public CreateGameResponse(){
+        super();
     }
 
-    public void setCode(int code) {
-        this.code = code;
+    public CreateGameResponse(int id, String message, int code) {
+        super(message, code);
+        this.id = id;
     }
 
     public int getId() {
@@ -24,14 +21,6 @@ public class CreateGameResponse {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 
     @Override
