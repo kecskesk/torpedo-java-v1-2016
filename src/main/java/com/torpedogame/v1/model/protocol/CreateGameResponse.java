@@ -8,6 +8,8 @@ public class CreateGameResponse {
     private int code;
     private int id;
 
+    public CreateGameResponse(){}
+
     public CreateGameResponse(int code, int id, String message) {
         this.code = code;
         this.id = id;
@@ -36,5 +38,10 @@ public class CreateGameResponse {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    @Override
+    public String toString(){
+        return getCode() + " " + getId() + " " + getMessage();
     }
 }
