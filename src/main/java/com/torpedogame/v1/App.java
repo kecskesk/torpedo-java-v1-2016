@@ -21,6 +21,7 @@ public class App extends TimerTask
 
     public static void main( String[] args )
     {
+        gameEngine = new GameApiImpl();
         System.out.println( "The torpedo program is starting..." );
 
         // Create a game
@@ -32,16 +33,13 @@ public class App extends TimerTask
         System.out.println(joinGameResponse.getMessage());
 
         // Get game-info
-        GameInfoResponse gameInfoResponse = gameEngine.gameInfo(currentGame.getId());
+        GameInfoResponse gameInfo = gameEngine.gameInfo(currentGame.getId());
 
         // Start executing the steps for each round
         // This will start the execution immediately, if a little delay is needed,
         // increase the second parameter of the schedule function.
         Timer timer = new Timer();
-        timer.schedule(new App(), 0, gameInfoResponse.getMapConfiguration().getRoundLength());
-
-        GameAPI gameAPI = new GameApiImpl();
-        System.out.print(gameAPI.createGame().toString());
+        timer.schedule(new App(), 0, gameInfo.getGame().getMapConfiguration().getRoundLength());
     }
 
     /**

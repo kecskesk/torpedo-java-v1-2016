@@ -10,11 +10,7 @@ public class GameListResponse {
     private String message;
     private int code;
 
-    public GameListResponse(int code, List<Integer> games, String message) {
-        this.code = code;
-        this.games = games;
-        this.message = message;
-    }
+    public GameListResponse(){}
 
     public int getCode() {
         return code;

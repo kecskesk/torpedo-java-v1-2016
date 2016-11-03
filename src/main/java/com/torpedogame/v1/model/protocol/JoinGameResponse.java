@@ -7,10 +7,7 @@ public class JoinGameResponse {
     private String message;
     private int code;
 
-    public JoinGameResponse(int code, String message) {
-        this.code = code;
-        this.message = message;
-    }
+    public JoinGameResponse(){}
 
     public int getCode() {
         return code;

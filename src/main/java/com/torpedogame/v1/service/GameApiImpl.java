@@ -25,15 +25,48 @@ public class GameApiImpl implements GameAPI {
     }
 
     public GameListResponse gameList() {
-        return null;
+        String response = HttpRequest.get(SERVER_URL + "game")
+                .header(TOKEN_HEADER_NAME, TOKEN_HEADER_VALUE).body();
+
+        ObjectMapper mapper = new ObjectMapper();
+        GameListResponse gameList = null;
+        try {
+            gameList = mapper.readValue(response, GameListResponse.class);
+        } catch (Exception e) {
+            System.out.println("Error retrieving game list: " + e.getMessage());
+        }
+
+        return gameList;
     }
 
     public JoinGameResponse joinGame(int gameId) {
-        return null;
+        String response = HttpRequest.post(SERVER_URL + "game/" + gameId)
+                .header(TOKEN_HEADER_NAME, TOKEN_HEADER_VALUE).body();
+
+        ObjectMapper mapper = new ObjectMapper();
+        JoinGameResponse joinGame = null;
+        try {
+            joinGame = mapper.readValue(response, JoinGameResponse.class);
+        } catch (Exception e) {
+            System.out.println("Error joining game " + gameId + ", Exception: " + e.getMessage());
+        }
+
+        return joinGame;
     }
 
     public GameInfoResponse gameInfo(int gameId) {
-        return null;
+        String response = HttpRequest.get(SERVER_URL + "game/" + gameId)
+                .header(TOKEN_HEADER_NAME, TOKEN_HEADER_VALUE).body();
+
+        ObjectMapper mapper = new ObjectMapper();
+        GameInfoResponse gameInfo = null;
+        try {
+            gameInfo = mapper.readValue(response, GameInfoResponse.class);
+        } catch (Exception e) {
+            System.out.println("Error retrieving game info for game: " + gameId + ", Exception: " + e.getMessage());
+        }
+
+        return gameInfo;
     }
 
     public void submarines() {
