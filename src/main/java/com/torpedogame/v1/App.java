@@ -5,17 +5,17 @@ import com.torpedogame.v1.model.utility.MoveModification;
 import com.torpedogame.v1.service.GameAPI;
 import com.torpedogame.v1.service.GameApiImpl;
 
-import com.torpedogame.v1.service.GameAPI;
 import com.torpedogame.v1.utility.NavigationComputer;
 import com.vividsolutions.jts.geom.Coordinate;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * Hello world!
- *
+ * The main entry point.
  */
 public class App extends TimerTask
 {
@@ -23,6 +23,7 @@ public class App extends TimerTask
     private static CreateGameResponse createdGame = null;
     private static JoinGameResponse joinedGame = null;
     private static GameInfoResponse gameInfoResponse = null;
+    private Map<Integer, Coordinate> targetStore;
 
     public static void main( String[] args )
     {
@@ -64,8 +65,6 @@ public class App extends TimerTask
      */
     @Override
     public void run() {
-        // TODO implement
-
         // update game info
         gameInfoResponse = gameEngine.gameInfo(createdGame.getId());
         System.out.println("--------------------------------------------------");
@@ -73,28 +72,50 @@ public class App extends TimerTask
 
         SubmarinesResponse submarinesResponse = gameEngine.submarines(createdGame.getId());
         List<Submarine> submarineList = submarinesResponse.getSubmarines();
-        Submarine awesomeFlagship = submarineList.get(0);
-        System.out.println("SHIP " + awesomeFlagship.getId());
-        System.out.println("position: " + awesomeFlagship.getPosition());
-        System.out.println("angle: " + awesomeFlagship.getAngle());
-        System.out.println("speed: " + awesomeFlagship.getVelocity());
-
-        SonarResponse sonarResponse = gameEngine.sonar(createdGame.getId(), awesomeFlagship.getId());
-        List<Entity> entityList = sonarResponse.getEntities();
-
-        System.out.println("visible entities:");
-        for (Entity e : entityList){
-            System.out.println("\t" + e.getType() + " " + e.getId());
-            System.out.println("\t\towner: " + e.getOwner());
-            System.out.println("\t\tposition: " + e.getPosition());
-            System.out.println("\t\tangle: " + e.getAngle());
-            System.out.println("\t\tvelocity: " + e.getVelocity());
-
+        if (submarineList == null || submarineList.isEmpty()) {
+            System.out.println("Submarine list is empty!");
+            return;
         }
-        System.out.println();
 
-        Coordinate target = new Coordinate(1200,150);
-        MoveModification moveModification = NavigationComputer.getMoveModification(awesomeFlagship.getPosition(), target, awesomeFlagship.getVelocity(), awesomeFlagship.getAngle());
-        gameEngine.move(createdGame.getId(), awesomeFlagship.getId(), moveModification.getSpeed(), moveModification.getTurn());
+        // initialize target store
+        if (targetStore == null) {
+            targetStore = new HashMap<>(submarineList.size());
+        }
+
+        for (Submarine submarine : submarineList) {
+            System.out.println("SHIP " + submarine.getId());
+            System.out.println("position: " + submarine.getPosition());
+            System.out.println("angle: " + submarine.getAngle());
+            System.out.println("speed: " + submarine.getVelocity());
+
+            SonarResponse sonarResponse = gameEngine.sonar(createdGame.getId(), submarine.getId());
+            List<Entity> entityList = sonarResponse.getEntities();
+
+            System.out.println("visible entities:");
+            for (Entity e : entityList) {
+                System.out.println("\t" + e.getType() + " " + e.getId());
+                System.out.println("\t\towner: " + e.getOwner());
+                System.out.println("\t\tposition: " + e.getPosition());
+                System.out.println("\t\tangle: " + e.getAngle());
+                System.out.println("\t\tvelocity: " + e.getVelocity());
+
+            }
+
+            System.out.println("---------------------------------------------------------------------------------");
+
+            // Try to get possible target from target store.
+            // Store target if this submarine doesn't have a target yet.
+            Coordinate target = null;
+            if (targetStore.containsKey(submarine.getId())) {
+                target = targetStore.get(submarine.getId());
+            } else {
+                target = new Coordinate(1200, 150);
+                targetStore.put(submarine.getId(), target);
+            }
+
+            // Calculate move modification value and move the submarine
+            MoveModification moveModification = NavigationComputer.getMoveModification(submarine.getPosition(), target, submarine.getVelocity(), submarine.getAngle());
+            gameEngine.move(createdGame.getId(), submarine.getId(), moveModification.getSpeed(), moveModification.getTurn());
+        }
     }
 }
