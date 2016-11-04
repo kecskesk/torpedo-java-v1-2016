@@ -7,9 +7,7 @@ package com.torpedogame.v1.model.protocol;
 public class Owner {
     private String name;
 
-    public Owner(String name) {
-        this.name = name;
-    }
+    public Owner() {}
 
     public String getName() {
         return name;

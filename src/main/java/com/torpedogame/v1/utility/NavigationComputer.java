@@ -42,19 +42,19 @@ public class NavigationComputer {
      */
     public static MoveModification getMoveModification(Coordinate currentPosition, Coordinate targetPosition, double currentVelocity, double currentAngle){
         Coordinate positionWithoutMovementModification = getExpectedPosition(currentPosition, currentVelocity, currentAngle);
-        double minimumDistance = targetPosition.distance(positionWithoutMovementModification);
+        double minimumDistance = 10000; // targetPosition.distance(positionWithoutMovementModification);
         MoveModification minimumMoveModification = new MoveModification(0,0);
 
         for(double d = -MAX_STEERING_PER_ROUND; d <= MAX_STEERING_PER_ROUND; d += 2*MAX_STEERING_PER_ROUND/40) {
             double tempAngle = currentAngle + d;
-
             // There is a slower speed level
             if(currentVelocity > MIN_SPEED) {
                 Coordinate slowerPosition = getExpectedPosition(currentPosition, currentVelocity - MAX_ACCELERATION_PER_ROUND, tempAngle);
                 double slowerDistance = targetPosition.distance(slowerPosition);
+
                 if (slowerDistance < minimumDistance) {
                     minimumDistance = slowerDistance;
-                    minimumMoveModification = new MoveModification(-MAX_ACCELERATION_PER_ROUND , -d); // TODO explain -d
+                    minimumMoveModification = new MoveModification(-MAX_ACCELERATION_PER_ROUND , d); // Since d is the
                 }
             }
 
@@ -62,17 +62,19 @@ public class NavigationComputer {
             if (currentVelocity < MAX_SPEED) {
                 Coordinate fasterPosition = getExpectedPosition(currentPosition, currentVelocity + MAX_ACCELERATION_PER_ROUND, tempAngle);
                 double fasterDistance = targetPosition.distance(fasterPosition);
+
                 if (fasterDistance < minimumDistance) {
                     minimumDistance = fasterDistance;
-                    minimumMoveModification = new MoveModification(MAX_ACCELERATION_PER_ROUND , -d);
+                    minimumMoveModification = new MoveModification(MAX_ACCELERATION_PER_ROUND , d);
                 }
             }
 
             Coordinate expectedPosition = getExpectedPosition(currentPosition, currentVelocity + MAX_ACCELERATION_PER_ROUND, tempAngle);
             double expectedDistance = targetPosition.distance(expectedPosition);
+
             if (expectedDistance < minimumDistance) {
                 minimumDistance = expectedDistance;
-                minimumMoveModification = new MoveModification(0 , -d);
+                minimumMoveModification = new MoveModification(0 , d);
             }
 
 

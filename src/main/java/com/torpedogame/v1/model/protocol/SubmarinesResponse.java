@@ -9,10 +9,7 @@ import java.util.List;
 public class SubmarinesResponse extends Response {
     private List<Submarine> submarines;
 
-    public SubmarinesResponse(List<Submarine> submarines, String message, int code) {
-        super(message, code);
-        this.submarines = submarines;
-    }
+    public SubmarinesResponse() {}
 
     public List<Submarine> getSubmarines() {
         return submarines;

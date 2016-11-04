@@ -11,6 +11,7 @@ public class MoveRequest {
         this.speed = speed;
         this.turn = turn;
     }
+    public MoveRequest() {}
 
     public double getSpeed() {
         return speed;

@@ -33,7 +33,9 @@ public class NavigationComputerTest extends TestCase {
         // Before
         double maxSteeringPerRound = 20.0;
         NavigationComputer.setMaxSteeringPerRound(maxSteeringPerRound);
-
+        NavigationComputer.setMinSpeed(0);
+        NavigationComputer.setMaxSpeed(20);
+        NavigationComputer.setMaxAccelerationPerRound(5);
         // Arrange
         Coordinate currentPos = new Coordinate(2, 1);
         Coordinate targetPos = new Coordinate(200, 1);
@@ -46,8 +48,36 @@ public class NavigationComputerTest extends TestCase {
         System.out.println(moveModification.getTurn());
 
         // Assert
-        assertTrue(moveModification.getTurn() == maxSteeringPerRound); // The steering should be the maximum possible
+        assertTrue(moveModification.getTurn() == -maxSteeringPerRound); // The steering should be the maximum possible
+        assertTrue(moveModification.getSpeed() == 0); // The steering should be the maximum possible
+
     }
+
+    public void testStraightForwardMovement()
+    {
+        // Before
+        double maxSteeringPerRound = 20.0;
+        NavigationComputer.setMaxSteeringPerRound(maxSteeringPerRound);
+        NavigationComputer.setMinSpeed(0);
+        NavigationComputer.setMaxSpeed(20);
+        NavigationComputer.setMaxAccelerationPerRound(5);
+
+        // Arrange
+        Coordinate currentPos = new Coordinate(0, 0);
+        Coordinate targetPos = new Coordinate(0, 100);
+        int currentVelocity = 20;
+        double currentAngle = 90;
+
+        // Act
+        MoveModification moveModification = NavigationComputer.getMoveModification(currentPos, targetPos, currentVelocity, currentAngle);
+        System.out.println(moveModification.getSpeed());
+        System.out.println(moveModification.getTurn());
+
+        // Assert
+        assertTrue(moveModification.getTurn() == 0); // The steering should be the maximum possible
+        assertTrue(moveModification.getSpeed() == 0);
+    }
+
     // TODO fuckin refactor this to parametrized test cases please somebody
     // TODO hint upgrade to JUnit 4.^
     public void testExpectedPositionUpward(){

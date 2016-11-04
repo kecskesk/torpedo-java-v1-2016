@@ -1,15 +1,15 @@
 package com.torpedogame.v1;
 
+import com.torpedogame.v1.model.protocol.*;
+import com.torpedogame.v1.model.utility.MoveModification;
 import com.torpedogame.v1.service.GameAPI;
 import com.torpedogame.v1.service.GameApiImpl;
 
-import com.torpedogame.v1.model.protocol.CreateGameResponse;
-import com.torpedogame.v1.model.protocol.GameInfoResponse;
-import com.torpedogame.v1.model.protocol.GameListResponse;
-import com.torpedogame.v1.model.protocol.JoinGameResponse;
 import com.torpedogame.v1.service.GameAPI;
 import com.torpedogame.v1.utility.NavigationComputer;
+import com.vividsolutions.jts.geom.Coordinate;
 
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -65,11 +65,22 @@ public class App extends TimerTask
     @Override
     public void run() {
         // TODO implement
-        System.out.println("Starting round {insert round number here}");
-        
+
         // update game info
         gameInfoResponse = gameEngine.gameInfo(createdGame.getId());
-        System.out.println(gameInfoResponse.getGame().toString());
-        
+        System.out.println("--------------------------------------------------");
+        System.out.println("Starting round " + gameInfoResponse.getGame().getRound());
+
+        SubmarinesResponse submarinesResponse = gameEngine.submarines(createdGame.getId());
+        List<Submarine> submarineList = submarinesResponse.getSubmarines();
+        Submarine awesomeFlagship = submarineList.get(0);
+        System.out.println("SHIP " + awesomeFlagship.getId());
+        System.out.println("position: " + awesomeFlagship.getPosition());
+        System.out.println("angle: " + awesomeFlagship.getAngle());
+        System.out.println("speed: " + awesomeFlagship.getVelocity());
+
+        Coordinate target = new Coordinate(700,50);
+        MoveModification moveModification = NavigationComputer.getMoveModification(awesomeFlagship.getPosition(), target, awesomeFlagship.getVelocity(), awesomeFlagship.getAngle());
+        gameEngine.move(createdGame.getId(), awesomeFlagship.getId(), moveModification.getSpeed(), moveModification.getTurn());
     }
 }
