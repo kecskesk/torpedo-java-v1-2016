@@ -79,7 +79,21 @@ public class App extends TimerTask
         System.out.println("angle: " + awesomeFlagship.getAngle());
         System.out.println("speed: " + awesomeFlagship.getVelocity());
 
-        Coordinate target = new Coordinate(700,50);
+        SonarResponse sonarResponse = gameEngine.sonar(createdGame.getId(), awesomeFlagship.getId());
+        List<Entity> entityList = sonarResponse.getEntities();
+
+        System.out.println("visible entities:");
+        for (Entity e : entityList){
+            System.out.println("\t" + e.getType() + " " + e.getId());
+            System.out.println("\t\towner: " + e.getOwner());
+            System.out.println("\t\tposition: " + e.getPosition());
+            System.out.println("\t\tangle: " + e.getAngle());
+            System.out.println("\t\tvelocity: " + e.getVelocity());
+
+        }
+        System.out.println();
+
+        Coordinate target = new Coordinate(1200,150);
         MoveModification moveModification = NavigationComputer.getMoveModification(awesomeFlagship.getPosition(), target, awesomeFlagship.getVelocity(), awesomeFlagship.getAngle());
         gameEngine.move(createdGame.getId(), awesomeFlagship.getId(), moveModification.getSpeed(), moveModification.getTurn());
     }
