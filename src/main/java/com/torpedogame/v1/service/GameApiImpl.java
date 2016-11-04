@@ -103,10 +103,12 @@ public class GameApiImpl implements GameAPI {
         if ("".equals(jsonToSend)) {
             return null;
         }
-
-        String response = HttpRequest.post(SERVER_URL + "game/" + gameId + "/submarine/" + submarineId + "/move")
-                         .send(jsonToSend)
-                         .header(TOKEN_HEADER_NAME, TOKEN_HEADER_VALUE).body();
+        String response =
+            HttpRequest.post(SERVER_URL + "game/" + gameId + "/submarine/" + submarineId + "/move")
+                .header(TOKEN_HEADER_NAME, TOKEN_HEADER_VALUE)
+                .header("Content-Type", "application/json")
+                .send(jsonToSend)
+                .body();
 
         MoveResponse moveResponse = null;
         try {
@@ -133,9 +135,12 @@ public class GameApiImpl implements GameAPI {
             return null;
         }
 
-        String response = HttpRequest.post(SERVER_URL + "game/" + gameId + "/submarine/" + submarineId + "/shoot")
-                         .send(jsonToSend)
-                         .header(TOKEN_HEADER_NAME, TOKEN_HEADER_VALUE).body();
+        String response =
+            HttpRequest.post(SERVER_URL + "game/" + gameId + "/submarine/" + submarineId + "/shoot")
+                .header(TOKEN_HEADER_NAME, TOKEN_HEADER_VALUE)
+                .header("Content-Type", "application/json")
+                .send(jsonToSend)
+                .body();
 
         ShootResponse shootResponse = null;
         try {
