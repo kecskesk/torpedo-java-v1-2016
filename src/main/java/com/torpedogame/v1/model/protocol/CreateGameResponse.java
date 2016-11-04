@@ -25,6 +25,6 @@ public class CreateGameResponse extends Response {
 
     @Override
     public String toString(){
-        return getCode() + " " + getId() + " " + getMessage();
+        return "Created game " + getCode() + " " + getId() + " " + getMessage();
     }
 }

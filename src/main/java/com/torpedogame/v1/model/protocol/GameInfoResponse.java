@@ -30,11 +30,9 @@ public class GameInfoResponse extends Response {
         public Game(){}
 
         private int round;
-        @JsonIgnore
-        private String scores;
+        private Scores scores;
         private int id;
-        @JsonIgnore
-        private String connectionStatus;
+        private ConnectionStatus connectionStatus;
         private MapConfiguration mapConfiguration;
         private String status;
         private String createdTime;
@@ -55,19 +53,19 @@ public class GameInfoResponse extends Response {
             this.round = round;
         }
 
-        public String getScores() {
+        public Scores getScores() {
             return scores;
         }
 
-        public void setScores(String scores) {
+        public void setScores(Scores scores) {
             this.scores = scores;
         }
 
-        public String getConnectionStatus() {
+        public ConnectionStatus getConnectionStatus() {
             return connectionStatus;
         }
 
-        public void setConnectionStatus(String connectionStatus) {
+        public void setConnectionStatus(ConnectionStatus connectionStatus) {
             this.connectionStatus = connectionStatus;
         }
 
@@ -93,6 +91,11 @@ public class GameInfoResponse extends Response {
 
         public void setCreatedTime(String createdTime) {
             this.createdTime = createdTime;
+        }
+
+        @Override
+        public String toString() {
+            return "Game{" + "round=" + round + ", scores=" + scores + ", id=" + id + ", connectionStatus=" + connectionStatus + ", mapConfiguration=" + mapConfiguration + ", status=" + status + ", createdTime=" + createdTime + '}';
         }
     }
 }

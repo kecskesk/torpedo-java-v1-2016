@@ -15,6 +15,6 @@ public class JoinGameResponse extends Response {
 
     @Override
     public String toString(){
-        return getCode() + " " + getMessage();
+        return "Joined game " + getCode() + " " + getMessage();
     }
 }

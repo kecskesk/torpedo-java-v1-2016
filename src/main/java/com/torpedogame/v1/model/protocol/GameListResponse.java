@@ -1,6 +1,7 @@
 package com.torpedogame.v1.model.protocol;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Dombi Soma on 03/11/2016.
@@ -28,6 +29,10 @@ public class GameListResponse extends Response {
 
     @Override
     public String toString(){
-        return getCode() + " " + getMessage();
+        String response = getCode() + " " + getMessage();
+        List<CharSequence> gamecodes = games.stream()
+                .map(game -> game.toString()).collect(Collectors.toList());
+        String games = "" + String.join(", ", gamecodes);
+        return "Games run by us: " + response + " " + games;
     }
 }
