@@ -69,7 +69,8 @@ public class NavigationComputer {
                 }
             }
 
-            Coordinate expectedPosition = getExpectedPosition(currentPosition, currentVelocity + MAX_ACCELERATION_PER_ROUND, tempAngle);
+            // Calculate the expected position, with no speed change
+            Coordinate expectedPosition = getExpectedPosition(currentPosition, currentVelocity , tempAngle);
             double expectedDistance = targetPosition.distance(expectedPosition);
 
             if (expectedDistance < minimumDistance) {

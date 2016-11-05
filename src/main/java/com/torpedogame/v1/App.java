@@ -67,8 +67,7 @@ public class App extends TimerTask
     public void run() {
         // update game info
         gameInfoResponse = gameEngine.gameInfo(createdGame.getId());
-        System.out.println("--------------------------------------------------");
-        System.out.println("Starting round " + gameInfoResponse.getGame().getRound());
+        System.out.println("####################  ROUND " + gameInfoResponse.getGame().getRound() + "  ####################");
 
         SubmarinesResponse submarinesResponse = gameEngine.submarines(createdGame.getId());
         List<Submarine> submarineList = submarinesResponse.getSubmarines();
