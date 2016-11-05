@@ -7,6 +7,9 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Dombi Soma on 03/11/2016.
  */
@@ -155,5 +158,28 @@ public class NavigationComputerTest extends TestCase {
 
         // Assert
         assertTrue(actualPos.equals(expectedPos));
+    }
+
+    public void testExpectedRoute(){
+        // Arrange
+        Coordinate currentPos = new Coordinate(200, 200);
+        int currentVelocity = 20;
+        double currentAngle = 90;
+        int length = 3;
+
+        Coordinate expectedPos1 = new Coordinate(200, 220);
+        Coordinate expectedPos2 = new Coordinate(200, 240);
+        Coordinate expectedPos3 = new Coordinate(200, 260);
+
+        // Act
+        List<Coordinate> actualRoute = NavigationComputer.getExpectedRoute(currentPos, currentVelocity, currentAngle, length);
+
+        // Assert
+        assertTrue(actualRoute.get(0).equals(currentPos));
+        assertTrue(actualRoute.get(1).equals(expectedPos1));
+        assertTrue(actualRoute.get(2).equals(expectedPos2));
+        assertTrue(actualRoute.get(3).equals(expectedPos3));
+
+
     }
 }
