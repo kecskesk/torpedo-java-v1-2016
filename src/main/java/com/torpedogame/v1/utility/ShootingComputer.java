@@ -36,10 +36,12 @@ public class ShootingComputer {
         // The position where the target will be when the torpedo hits in
         Coordinate impactPosition = null;
 
+        // TODO this will be the furthest impact point, REFACTOR this to find the closest
         for (int i = 1; i < TORPEDO_RANGE; i++) {
             Coordinate expectedPosition = expectedTargetRoute.get(i);
             double roundToGetThere = currentPosition.distance(expectedPosition) / TORPEDO_SPEED;
             if (roundToGetThere >= i - 1 && roundToGetThere < i) {
+                // TODO check for out of map impact points, don't shoot positions where the ship can't possibly go
                 System.out.println("- Target locked!");
                 impactPosition = expectedPosition;
             }
@@ -52,8 +54,6 @@ public class ShootingComputer {
 
         // This solution the rounding problem is copied from here
         // http://stackoverflow.com/questions/11701399/round-up-to-2-decimal-places-in-java
-        // TODO rebase on Robi's solution
-        // getRandomTarget function
         return Math.round(GeometryUtility.getDegree(currentPosition, impactPosition) * 100.0) / 100.0;
     }
 }
