@@ -134,17 +134,4 @@ public class NavigationComputer {
         return expectedPositions;
     }
 
-    /**
-     * This is an Adapter function for the Angle.angle(Coordinate p0, Coordinate p1) function.
-     * The result interval is moved from [ -Pi, Pi ] to [0 , 360)
-     *
-     * @return The angle of the vector from p0 to p1 in degree.
-     */
-    public static double getDegree(Coordinate p0, Coordinate p1) {
-        double angle = Angle.toDegrees(Angle.angle(p0, p1));
-        if (angle < 0) {
-            angle = 360 + angle;
-        }
-        return angle;
-    }
 }

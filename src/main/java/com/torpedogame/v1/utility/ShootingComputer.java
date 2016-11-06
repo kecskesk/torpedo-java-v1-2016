@@ -54,6 +54,6 @@ public class ShootingComputer {
         // http://stackoverflow.com/questions/11701399/round-up-to-2-decimal-places-in-java
         // TODO rebase on Robi's solution
         // getRandomTarget function
-        return Math.round(NavigationComputer.getDegree(currentPosition, impactPosition) * 100.0) / 100.0;
+        return Math.round(GeometryUtility.getDegree(currentPosition, impactPosition) * 100.0) / 100.0;
     }
 }
