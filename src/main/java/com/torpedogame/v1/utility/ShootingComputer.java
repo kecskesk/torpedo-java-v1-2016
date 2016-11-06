@@ -41,9 +41,11 @@ public class ShootingComputer {
             Coordinate expectedPosition = expectedTargetRoute.get(i);
             double roundToGetThere = currentPosition.distance(expectedPosition) / TORPEDO_SPEED;
             if (roundToGetThere >= i - 1 && roundToGetThere < i) {
-                // TODO check for out of map impact points, don't shoot positions where the ship can't possibly go
-                System.out.println("- Target locked!");
-                impactPosition = expectedPosition;
+                // check for out of map impact points, don't shoot positions where the ship can't possibly go
+                if (NavigationComputer.isTargetOnMap(targetPosition)) {
+                    System.out.println("- Target locked!");
+                    impactPosition = expectedPosition;
+                }
             }
         }
 
