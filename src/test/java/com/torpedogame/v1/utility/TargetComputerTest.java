@@ -28,6 +28,7 @@ public class TargetComputerTest extends TestCase {
         mapConfiguration.setHeight(1500);
         mapConfiguration.setIslandSize(2*50);
         mapConfiguration.setIslandPositions(Arrays.asList(new Coordinate(500, 500)));
+        mapConfiguration.setSonarRange(50);
         TargetComputer.setMapConfiguration(mapConfiguration);
 
         Coordinate nextTarget = TargetComputer.getNextTarget(new Coordinate(0, 0), null);
@@ -42,6 +43,7 @@ public class TargetComputerTest extends TestCase {
         mapConfiguration.setHeight(1500);
         mapConfiguration.setIslandSize(2*50);
         mapConfiguration.setIslandPositions(Arrays.asList(new Coordinate(500, 500)));
+        mapConfiguration.setSonarRange(50);
         TargetComputer.setMapConfiguration(mapConfiguration);
 
         Coordinate nextTarget = TargetComputer.getNextTarget(new Coordinate(10, 10), new Coordinate(20, 20));
@@ -56,6 +58,7 @@ public class TargetComputerTest extends TestCase {
         mapConfiguration.setHeight(1500);
         mapConfiguration.setIslandSize(2*50);
         mapConfiguration.setIslandPositions(Arrays.asList(new Coordinate(500, 500)));
+        mapConfiguration.setSonarRange(50);
         TargetComputer.setMapConfiguration(mapConfiguration);
 
         Coordinate nextTarget = TargetComputer.getNextTarget(new Coordinate(10, 10), new Coordinate(40, 50));

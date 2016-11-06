@@ -15,22 +15,19 @@ import java.util.Random;
  */
 public class TargetComputer {
     private static MapConfiguration mapConfiguration;
-    private static final double SAFE_MAP_WIDTH_FACTOR = 0.9;
-    private static final double SAFE_MAP_HEIGHT_FACTOR = 0.9;
-    private static final double SAFE_ISLAND_SIZE = 1.15;
+    private static final int TARGET_MAX_DISTANCE_FACTOR = 2;
     private static final int TARGET_DISTANCE_THRESHOLD = 15;
-    private static final int TARGET_ANGLE_THRESHOLD = 45;
 
     public static void setMapConfiguration(MapConfiguration mapConfiguration) {
         TargetComputer.mapConfiguration = mapConfiguration;
     }
 
     public static Coordinate getNextTarget(Coordinate currentPosition, Coordinate currentTarget) {
-        int safeMapWidth = (int)Math.floor(mapConfiguration.getWidth() * SAFE_MAP_WIDTH_FACTOR);
-        int safeMapHeight = (int)Math.floor(mapConfiguration.getHeight() * SAFE_MAP_HEIGHT_FACTOR);
+        int safeMapMaxX = (int)Math.floor(mapConfiguration.getWidth() - mapConfiguration.getSonarRange());
+        int safeMapMaxY = (int)Math.floor(mapConfiguration.getHeight() - mapConfiguration.getSonarRange());
 
-        int safeIslandSize = (int)Math.floor(mapConfiguration.getIslandSize() * SAFE_ISLAND_SIZE);
-        Envelope safeMap = new Envelope(0, safeMapWidth, 0, safeMapHeight);
+        int safeIslandSize = (int)Math.ceil(mapConfiguration.getIslandSize() + (mapConfiguration.getSonarRange() / 2));
+        Envelope safeMap = new Envelope(mapConfiguration.getSonarRange(), safeMapMaxX, mapConfiguration.getSonarRange(), safeMapMaxY);
         Geometry island = getIsland(mapConfiguration.getIslandPositions().get(0), safeIslandSize);
         Geometry map = getMap(safeMap);
 
@@ -44,7 +41,7 @@ public class TargetComputer {
         }
 
         if (currentTarget == null || isTargetWithinDistance) {
-            return getRandomTarget(safeMapWidth, safeMapHeight, mapWithHole, sonarRange);
+            return getRandomTarget(mapWithHole, sonarRange, currentPosition);
         } else {
             // We haven't reached the target so continue with it.
             return currentTarget;
@@ -64,14 +61,21 @@ public class TargetComputer {
         return mapFactory.createRectangle();
     }
 
-    private static Coordinate getRandomTarget(int mapWidth, int mapHeight, Geometry map, int sonarRange) {
+    private static Coordinate getRandomTarget(Geometry map, int sonarRange, Coordinate currentPosition) {
         boolean targetFound = false;
         Point nextTargetCoords = null;
         Random rand = new Random();
+        Envelope mapBoundary = map.getEnvelopeInternal();
+        int maxDistance = TARGET_MAX_DISTANCE_FACTOR * sonarRange;
 
         while (!targetFound) {
-            int targetWidth = rand.nextInt(((mapWidth / 2) - sonarRange) + 1) + sonarRange;
-            int targetHeight = rand.nextInt(((mapHeight / 2) - sonarRange) + 1) + sonarRange;
+            int minX = currentPosition.x - maxDistance < mapBoundary.getMinX() ? (int)mapBoundary.getMinX() : (int)(currentPosition.x - maxDistance);
+            int maxX = currentPosition.x + maxDistance > mapBoundary.getMaxX() ? (int)mapBoundary.getMaxX() : (int)(currentPosition.x + maxDistance);
+            int minY = currentPosition.y - maxDistance < mapBoundary.getMinY() ? (int)mapBoundary.getMinY() : (int)(currentPosition.y - maxDistance);
+            int maxY = currentPosition.y + maxDistance > mapBoundary.getMaxY() ? (int)mapBoundary.getMaxY() : (int)(currentPosition.y + maxDistance);
+
+            int targetWidth = rand.nextInt(maxX - minX + 1) + minX;
+            int targetHeight = rand.nextInt(maxY - minY +1) + minY;
             nextTargetCoords = new GeometryFactory().createPoint(new Coordinate(targetWidth, targetHeight));
             if (nextTargetCoords.within(map)) {
                 targetFound = true;
