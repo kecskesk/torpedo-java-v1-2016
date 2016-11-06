@@ -7,6 +7,7 @@ import com.torpedogame.v1.service.GameApiImpl;
 
 import com.torpedogame.v1.utility.NavigationComputer;
 import com.torpedogame.v1.utility.ShootingComputer;
+import com.torpedogame.v1.utility.TargetComputer;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import java.util.HashMap;
@@ -101,6 +102,11 @@ public class App extends TimerTask
             List<Entity> entityList = sonarResponse.getEntities();
 
             System.out.println("visible entities:");
+            if (entityList == null) {
+                System.out.println("Entity list is null, continue with next submarine.");
+                continue;
+            }
+
             for (Entity e : entityList) {
                 System.out.println("\t" + e.getType() + " " + e.getId());
                 System.out.println("\t\towner: " + e.getOwner());
@@ -124,21 +130,24 @@ public class App extends TimerTask
                 }
             }
 
-            System.out.println("---------------------------------------------------------------------------------");
-
-            // Try to get possible target from target store.
-            // Store target if this submarine doesn't have a target yet.
+            // Try to get previous target from target store.
             Coordinate target = null;
             if (targetStore.containsKey(submarine.getId())) {
                 target = targetStore.get(submarine.getId());
-            } else {
-                target = submarine.getId()%2 == 0?new Coordinate(1200, 150): new Coordinate(300, 350);
-                targetStore.put(submarine.getId(), target);
             }
+
+            TargetComputer.setMapConfiguration(gameInfoResponse.getGame().getMapConfiguration());
+            boolean shouldBeOnLeftSide = (submarine.getId() % 2 == 0);
+            target = TargetComputer.getNextTarget(submarine.getPosition(), target, shouldBeOnLeftSide);
+            targetStore.put(submarine.getId(), target);
+
+            System.out.println("\t\tcurrent target: " + target.toString());
 
             // Calculate move modification value and move the submarine
             MoveModification moveModification = NavigationComputer.getMoveModification(submarine.getPosition(), target, submarine.getVelocity(), submarine.getAngle());
             gameEngine.move(createdGame.getId(), submarine.getId(), moveModification.getSpeed(), moveModification.getTurn());
+
+            System.out.println("---------------------------------------------------------------------------------");
         }
     }
 }
