@@ -1,7 +1,11 @@
 package com.torpedogame.v1.utility;
 
 import com.torpedogame.v1.model.utility.MoveModification;
+import com.vividsolutions.jts.algorithm.Angle;
 import com.vividsolutions.jts.geom.Coordinate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class is a static method collection for the navigation related calculations.
@@ -32,7 +36,7 @@ public class NavigationComputer {
     }
 
     /**
-     * This function returns the recommended speed vector modification if the ship
+     * This function returns the recommended speed vector modification of the ship
      *
      * @param currentPosition The ships current position
      * @param targetPosition The target that the ship wants to reach
@@ -99,5 +103,48 @@ public class NavigationComputer {
         double expectedY = Math.round((currentPosition.y + Math.sin(Math.toRadians(currentAngle)) * currentVelocity)*100.0)/100.0;
 
         return new Coordinate(expectedX, expectedY);
+    }
+
+    /**
+     * This function returns the expected coordinates of an entity. The first element is the current coordinate of the
+     * entity, the rest of the list contains the coordinates of the expected route where the index is the round and the
+     * value is coordinate of the coordinate of the entity in that round.
+     *
+     * NOTE
+     * **In case of length = 5, the result list will be 6 long**
+     *
+     * @param currentPosition The current position of the entity
+     * @param currentVelocity The current velocity of the entity
+     * @param currentAngle The current angle of the entity
+     * @return The Coordinates of the expected route
+     */
+    public static List<Coordinate> getExpectedRoute(Coordinate currentPosition, double currentVelocity, double currentAngle, int length) {
+        // Generate expected positions of the target
+        // Each index represents a round and the value is a Coordinate
+        // where the target is expected to be in that specific round
+        List<Coordinate> expectedPositions = new ArrayList<>();
+
+        // Add the current target position for round 0.
+        expectedPositions.add(currentPosition);
+        for(int i = 0; i < length; i++) {
+            // Calculate the next coordinate based on the previous.
+            expectedPositions.add(NavigationComputer.getExpectedPosition(expectedPositions.get(i), currentVelocity, currentAngle));
+        }
+
+        return expectedPositions;
+    }
+
+    /**
+     * This is an Adapter function for the Angle.angle(Coordinate p0, Coordinate p1) function.
+     * The result interval is moved from [ -Pi, Pi ] to [0 , 360)
+     *
+     * @return The angle of the vector from p0 to p1 in degree.
+     */
+    public static double getDegree(Coordinate p0, Coordinate p1) {
+        double angle = Angle.toDegrees(Angle.angle(p0, p1));
+        if (angle < 0) {
+            angle = 360 + angle;
+        }
+        return angle;
     }
 }

@@ -7,6 +7,9 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Dombi Soma on 03/11/2016.
  */
@@ -44,8 +47,6 @@ public class NavigationComputerTest extends TestCase {
 
         // Act
         MoveModification moveModification = NavigationComputer.getMoveModification(currentPos, targetPos, currentVelocity, currentAngle);
-        System.out.println(moveModification.getSpeed());
-        System.out.println(moveModification.getTurn());
 
         // Assert
         assertTrue(moveModification.getTurn() == -maxSteeringPerRound); // The steering should be the maximum possible
@@ -70,8 +71,6 @@ public class NavigationComputerTest extends TestCase {
 
         // Act
         MoveModification moveModification = NavigationComputer.getMoveModification(currentPos, targetPos, currentVelocity, currentAngle);
-        System.out.println(moveModification.getSpeed());
-        System.out.println(moveModification.getTurn());
 
         // Assert
         assertTrue(moveModification.getTurn() == 0); // The steering should be the maximum possible
@@ -155,5 +154,74 @@ public class NavigationComputerTest extends TestCase {
 
         // Assert
         assertTrue(actualPos.equals(expectedPos));
+    }
+
+    public void testExpectedRoute(){
+        // Arrange
+        Coordinate currentPos = new Coordinate(200, 200);
+        int currentVelocity = 20;
+        double currentAngle = 90;
+        int length = 3;
+
+        Coordinate expectedPos1 = new Coordinate(200, 220);
+        Coordinate expectedPos2 = new Coordinate(200, 240);
+        Coordinate expectedPos3 = new Coordinate(200, 260);
+
+        // Act
+        List<Coordinate> actualRoute = NavigationComputer.getExpectedRoute(currentPos, currentVelocity, currentAngle, length);
+
+        // Assert
+        assertTrue(actualRoute.get(0).equals(currentPos));
+        assertTrue(actualRoute.get(1).equals(expectedPos1));
+        assertTrue(actualRoute.get(2).equals(expectedPos2));
+        assertTrue(actualRoute.get(3).equals(expectedPos3));
+
+
+    }
+
+    // TODO Again parametrized tests are cool things...
+    public void testGetDegreeUnder180() {
+        // Arrange
+        Coordinate p0 = new Coordinate(0, 0);
+        Coordinate p1 = new Coordinate(-20, 20);
+
+        double expectedDegree = 135;
+
+        // Act
+        double actualDegree = NavigationComputer.getDegree(p0, p1);
+
+        // Assert
+        assertTrue(actualDegree == expectedDegree);
+
+    }
+
+    public void testGetDegreeOver180() {
+        // Arrange
+        Coordinate p0 = new Coordinate(0, 0);
+        Coordinate p1 = new Coordinate(-20, -20);
+
+        double expectedDegree = 225;
+
+        // Act
+        double actualDegree = NavigationComputer.getDegree(p0, p1);
+
+        // Assert
+        assertTrue(actualDegree == expectedDegree);
+
+    }
+
+    public void testGetDegreeZero() {
+        // Arrange
+        Coordinate p0 = new Coordinate(0, 0);
+        Coordinate p1 = new Coordinate(20, 0);
+
+        double expectedDegree = 0;
+
+        // Act
+        double actualDegree = NavigationComputer.getDegree(p0, p1);
+
+        // Assert
+        assertTrue(actualDegree == expectedDegree);
+
     }
 }

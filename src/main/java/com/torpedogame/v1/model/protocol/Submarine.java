@@ -6,20 +6,83 @@ import com.vividsolutions.jts.geom.Coordinate;
  *
  * @author kkrisz
  */
-public class Submarine extends Entity{
+public class Submarine {
     private Integer sonarCooldown;
     private Integer torpedoCooldown;
     private Integer sonarExtended;
+    protected String type;
+    protected Integer id;
+    protected Coordinate position;
+    protected Owner owner;
+    protected Integer velocity;
+    protected Integer angle;
+    protected Integer hp;
+    protected Integer roundsMoved;
 
-    public Submarine(Integer sonarCooldown, Integer torpedoCooldown, Integer sonarExtended, String type, Integer id, Coordinate position, Owner owner, Integer velocity, Integer angle, Integer hp) {
-        super(type, id, position, owner, velocity, angle, hp);
-        this.sonarCooldown = sonarCooldown;
-        this.torpedoCooldown = torpedoCooldown;
-        this.sonarExtended = sonarExtended;
+    public Submarine() {}
+
+    public Integer getAngle() {
+        return angle;
     }
 
-    public Submarine() {
-        super();
+    public void setAngle(Integer angle) {
+        this.angle = angle;
+    }
+
+    public Integer getHp() {
+        return hp;
+    }
+
+    public void setHp(Integer hp) {
+        this.hp = hp;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Owner getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Owner owner) {
+        this.owner = owner;
+    }
+
+    public Coordinate getPosition() {
+        return position;
+    }
+
+    public void setPosition(Coordinate position) {
+        this.position = position;
+    }
+
+    public Integer getRoundsMoved() {
+        return roundsMoved;
+    }
+
+    public void setRoundsMoved(Integer roundsMoved) {
+        this.roundsMoved = roundsMoved;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public Integer getVelocity() {
+        return velocity;
+    }
+
+    public void setVelocity(Integer velocity) {
+        this.velocity = velocity;
     }
 
     public Integer getSonarCooldown() {

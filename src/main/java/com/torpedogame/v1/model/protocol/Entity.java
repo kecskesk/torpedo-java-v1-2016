@@ -15,20 +15,19 @@ public class Entity {
     protected Integer velocity;
     protected Integer angle;
     protected Integer hp;
+    protected Integer roundsMoved;
 
-    public Entity(String type, Integer id, Coordinate position, Owner owner, Integer velocity, Integer angle, Integer hp) {
-        this.type = type;
-        this.id = id;
-        this.position = position;
-        this.owner = owner;
-        this.velocity = velocity;
-        this.angle = angle;
-        this.hp = hp;
-    }
 
     public Entity() {
     }
 
+    public Integer getRoundsMoved() {
+        return roundsMoved;
+    }
+
+    public void setRoundsMoved(Integer roundsMoved) {
+        this.roundsMoved = roundsMoved;
+    }
     public String getType() {
         return type;
     }
