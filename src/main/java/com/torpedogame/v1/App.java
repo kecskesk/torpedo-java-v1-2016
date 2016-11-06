@@ -6,7 +6,7 @@ import com.torpedogame.v1.service.GameAPI;
 import com.torpedogame.v1.service.GameApiImpl;
 
 import com.torpedogame.v1.utility.NavigationComputer;
-import com.torpedogame.v1.utility.TargetingComputer;
+import com.torpedogame.v1.utility.ShootingComputer;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import java.util.HashMap;
@@ -54,8 +54,8 @@ public class App extends TimerTask
         // By increasing this, it may be used to avoid slowing down in high(e.g. 180) degree turns.
         NavigationComputer.setMinSpeed(0.0);
 
-        TargetingComputer.setTorpedoRange(gameInfoResponse.getGame().getMapConfiguration().getTorpedoRange());
-        TargetingComputer.setTorpedoSpeed(gameInfoResponse.getGame().getMapConfiguration().getTorpedoSpeed());
+        ShootingComputer.setTorpedoRange(gameInfoResponse.getGame().getMapConfiguration().getTorpedoRange());
+        ShootingComputer.setTorpedoSpeed(gameInfoResponse.getGame().getMapConfiguration().getTorpedoSpeed());
 
         // Start executing the steps for each round
         // This will start the execution immediately, if a little delay is needed,
@@ -105,7 +105,7 @@ public class App extends TimerTask
                     // Red Alert
                     // TODO Check for torpedo cooldown!
                     try {
-                        double shootingAngle = TargetingComputer.getShootingAngle(submarine.getPosition(), e.getPosition(), e.getVelocity(), e.getAngle());
+                        double shootingAngle = ShootingComputer.getShootingAngle(submarine.getPosition(), e.getPosition(), e.getVelocity(), e.getAngle());
                         System.out.println("- Firing!");
                         gameEngine.shoot(createdGame.getId(), submarine.getId(), shootingAngle);
                     } catch (Exception ise) {

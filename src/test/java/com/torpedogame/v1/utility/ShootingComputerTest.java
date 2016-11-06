@@ -1,6 +1,5 @@
 package com.torpedogame.v1.utility;
 
-import com.torpedogame.v1.model.utility.MoveModification;
 import com.vividsolutions.jts.geom.Coordinate;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -9,16 +8,16 @@ import junit.framework.TestSuite;
 /**
  * Created by Dombi Soma on 03/11/2016.
  */
-public class TargetingComputerTest extends TestCase {
+public class ShootingComputerTest extends TestCase {
 
-    public TargetingComputerTest(String testName )
+    public ShootingComputerTest(String testName )
     {
         super( testName );
     }
 
     public static Test suite()
     {
-        return new TestSuite( TargetingComputerTest.class );
+        return new TestSuite( ShootingComputerTest.class );
     }
 
     /**
@@ -29,8 +28,8 @@ public class TargetingComputerTest extends TestCase {
     public void testFrontalAngle()
     {
         // Before
-        TargetingComputer.setTorpedoSpeed(40);
-        TargetingComputer.setTorpedoRange(20);
+        ShootingComputer.setTorpedoSpeed(40);
+        ShootingComputer.setTorpedoRange(20);
 
         // Arrange
         Coordinate currentPos = new Coordinate(200, 200);
@@ -41,7 +40,7 @@ public class TargetingComputerTest extends TestCase {
         double expectedAngle = 0.0;
 
         // Act
-        double actualAngle = TargetingComputer.getShootingAngle(currentPos, targetPos, targetVelocity, targetAngle);
+        double actualAngle = ShootingComputer.getShootingAngle(currentPos, targetPos, targetVelocity, targetAngle);
 
 
         // Assert
@@ -51,8 +50,8 @@ public class TargetingComputerTest extends TestCase {
 //    public void testRegression1()
 //    {
 //        // Before
-//        TargetingComputer.setTorpedoSpeed(40);
-//        TargetingComputer.setTorpedoRange(10);
+//        ShootingComputer.setTorpedoSpeed(40);
+//        ShootingComputer.setTorpedoRange(10);
 //
 //        // Arrange
 //        Coordinate currentPos = new Coordinate(854.2704297427024, 170.1201065802797);
@@ -63,7 +62,7 @@ public class TargetingComputerTest extends TestCase {
 //        double expectedAngle = 0.0;
 //
 //        // Act
-//        double actualAngle = TargetingComputer.getShootingAngle(currentPos, targetPos, targetVelocity, targetAngle);
+//        double actualAngle = ShootingComputer.getShootingAngle(currentPos, targetPos, targetVelocity, targetAngle);
 //        System.out.println("asd");
 //        System.out.println(actualAngle);
 //
@@ -74,8 +73,8 @@ public class TargetingComputerTest extends TestCase {
 //    public void testRegression2()
 //    {
 //        // Before
-//        TargetingComputer.setTorpedoSpeed(40);
-//        TargetingComputer.setTorpedoRange(10);
+//        ShootingComputer.setTorpedoSpeed(40);
+//        ShootingComputer.setTorpedoRange(10);
 //
 //        // Arrange
 //        Coordinate currentPos = new Coordinate(598.2704001669214, 215.3727403655713);
@@ -86,7 +85,7 @@ public class TargetingComputerTest extends TestCase {
 //        double expectedAngle = 0.0;
 //
 //        // Act
-//        double actualAngle = TargetingComputer.getShootingAngle(currentPos, targetPos, targetVelocity, targetAngle);
+//        double actualAngle = ShootingComputer.getShootingAngle(currentPos, targetPos, targetVelocity, targetAngle);
 //        System.out.println("asd");
 //        System.out.println(actualAngle);
 //

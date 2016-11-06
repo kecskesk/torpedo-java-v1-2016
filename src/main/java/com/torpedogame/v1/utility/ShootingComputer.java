@@ -1,6 +1,5 @@
 package com.torpedogame.v1.utility;
 
-import com.vividsolutions.jts.algorithm.Angle;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import java.util.List;
@@ -8,16 +7,16 @@ import java.util.List;
 /**
  * Created by Dombi Soma on 05/11/2016.
  */
-public class TargetingComputer {
+public class ShootingComputer {
     private static int TORPEDO_SPEED;
     private static int TORPEDO_RANGE;
 
     public static void setTorpedoSpeed(int torpedoSpeed) {
-        TargetingComputer.TORPEDO_SPEED = torpedoSpeed;
+        ShootingComputer.TORPEDO_SPEED = torpedoSpeed;
     }
 
     public static void setTorpedoRange(int torpedoRange) {
-        TargetingComputer.TORPEDO_RANGE = torpedoRange;
+        ShootingComputer.TORPEDO_RANGE = torpedoRange;
     }
 
     /**
