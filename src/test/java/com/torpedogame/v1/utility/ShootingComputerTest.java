@@ -1,6 +1,7 @@
 package com.torpedogame.v1.utility;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import java.util.ArrayList;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -10,23 +11,20 @@ import junit.framework.TestSuite;
  */
 public class ShootingComputerTest extends TestCase {
 
-    public ShootingComputerTest(String testName )
-    {
-        super( testName );
+    public ShootingComputerTest(String testName) {
+        super(testName);
     }
 
-    public static Test suite()
-    {
-        return new TestSuite( ShootingComputerTest.class );
+    public static Test suite() {
+        return new TestSuite(ShootingComputerTest.class);
     }
 
     /**
-     * The target is right ahead of us. More specifically it's speed vector is pointing
-     * exactly on us.
+     * The target is right ahead of us. More specifically it's speed vector is
+     * pointing exactly on us.
      */
-
-    public void testFrontalAngle()
-    {
+    public void testFrontalAngle() {
+        setUpMapForTest();
         // Before
         ShootingComputer.setTorpedoSpeed(40);
         ShootingComputer.setTorpedoRange(20);
@@ -42,11 +40,18 @@ public class ShootingComputerTest extends TestCase {
         // Act
         double actualAngle = ShootingComputer.getShootingAngle(currentPos, targetPos, targetVelocity, targetAngle);
 
-
         // Assert
         assertTrue(actualAngle == expectedAngle); // The steering should be the maximum possible
 
     }
+
+    private void setUpMapForTest() {
+        NavigationComputer.setHeight(1000);
+        NavigationComputer.setWidth(1000);
+        NavigationComputer.setIslandPositions(new ArrayList<>());
+        NavigationComputer.setIslandSize(10);
+    }
+    
 //    public void testRegression1()
 //    {
 //        // Before
@@ -93,5 +98,4 @@ public class ShootingComputerTest extends TestCase {
 //        assertTrue(actualAngle == expectedAngle); // The steering should be the maximum possible
 //
 //    }
-
 }

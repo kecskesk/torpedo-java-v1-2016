@@ -29,6 +29,9 @@ public class App extends TimerTask
 
     public static void main( String[] args )
     {
+        SparkServer sparkServer = new SparkServer();
+        sparkServer.start();
+        
         gameEngine = new GameApiImpl();
         System.out.println( "The torpedo program is starting..." );
 
