@@ -12,12 +12,47 @@ import java.util.List;
  * Created by Dombi Soma on 03/11/2016.
  */
 public class NavigationComputer {
+    private static int width;
+    private static int height;
+    private static List<Coordinate> islandPositions;
+    private static int islandSize;
 
     private static double MAX_STEERING_PER_ROUND;
     private static double MAX_ACCELERATION_PER_ROUND;
     private static double MAX_SPEED;
     private static double MIN_SPEED;
 
+    public static int getWidth() {
+        return width;
+    }
+
+    public static void setWidth(int width) {
+        NavigationComputer.width = width;
+    }
+
+    public static int getHeight() {
+        return height;
+    }
+
+    public static void setHeight(int height) {
+        NavigationComputer.height = height;
+    }
+
+    public static List<Coordinate> getIslandPositions() {
+        return islandPositions;
+    }
+
+    public static void setIslandPositions(List<Coordinate> islandPositions) {
+        NavigationComputer.islandPositions = islandPositions;
+    }
+
+    public static int getIslandSize() {
+        return islandSize;
+    }
+
+    public static void setIslandSize(int islandSize) {
+        NavigationComputer.islandSize = islandSize;
+    }
 
     public static void setMaxSteeringPerRound(double maxSteeringPerRound){
         NavigationComputer.MAX_STEERING_PER_ROUND = maxSteeringPerRound;
@@ -132,6 +167,29 @@ public class NavigationComputer {
         }
 
         return expectedPositions;
+    }
+    
+    public static boolean isTargetOnMap(Coordinate target) {
+        // Shooting off the left/right egdes
+        if (target.x < 0 || target.x > width) {
+            return false;
+        }
+        
+        // Shooting above/below the map
+        if (target.y < 0 || target.y > height) {
+            return false;
+        }
+        
+        // Hitting an island
+        for (Coordinate island : islandPositions) {
+            Double size = new Double(islandSize);
+            Double dist = island.distance(target);
+            if (dist < size) {
+                return false;
+            }
+        }
+        
+        return true;
     }
 
 }

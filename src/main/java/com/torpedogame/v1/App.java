@@ -53,6 +53,12 @@ public class App extends TimerTask
         // MinSpeed is not originated from the GameInfo, 0 was measured by hand.
         // By increasing this, it may be used to avoid slowing down in high(e.g. 180) degree turns.
         NavigationComputer.setMinSpeed(0.0);
+        
+        // Load map into NavComp
+        NavigationComputer.setHeight(gameInfoResponse.getGame().getMapConfiguration().getHeight());
+        NavigationComputer.setWidth(gameInfoResponse.getGame().getMapConfiguration().getWidth());
+        NavigationComputer.setIslandPositions(gameInfoResponse.getGame().getMapConfiguration().getIslandPositions());
+        NavigationComputer.setIslandSize(gameInfoResponse.getGame().getMapConfiguration().getIslandSize());
 
         ShootingComputer.setTorpedoRange(gameInfoResponse.getGame().getMapConfiguration().getTorpedoRange());
         ShootingComputer.setTorpedoSpeed(gameInfoResponse.getGame().getMapConfiguration().getTorpedoSpeed());

@@ -2,12 +2,11 @@ package com.torpedogame.v1.utility;
 
 import com.torpedogame.v1.model.utility.MoveModification;
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.math.MathUtil;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -177,5 +176,55 @@ public class NavigationComputerTest extends TestCase {
         assertTrue(actualRoute.get(3).equals(expectedPos3));
 
 
+    }
+    
+    // TESTS FOR isTargetOnMap -----------------------------
+    
+    public void testShootLeft(){
+        setUpMapForTest();
+        Coordinate target = new Coordinate(-1 , 12);
+        assertFalse(NavigationComputer.isTargetOnMap(target));
+    }
+    
+    public void testShootRight(){
+        setUpMapForTest();
+        Coordinate target = new Coordinate(121 , 12);
+        assertFalse(NavigationComputer.isTargetOnMap(target));
+    
+    }
+    
+    public void testShootUp(){
+        setUpMapForTest();
+        Coordinate target = new Coordinate(12 , 551);
+        assertFalse(NavigationComputer.isTargetOnMap(target));
+    
+    }
+    
+    public void testShootDown(){
+        setUpMapForTest();
+        Coordinate target = new Coordinate(-1 , -154);
+        assertFalse(NavigationComputer.isTargetOnMap(target));
+    
+    }
+    
+    public void testShootIsland(){
+        setUpMapForTest();
+        Coordinate target = new Coordinate(45 , 45);
+        assertFalse(NavigationComputer.isTargetOnMap(target));
+    
+    }
+    
+    public void testShootCorrect(){
+        setUpMapForTest();
+        Coordinate target = new Coordinate(25 , 25);
+        assertTrue(NavigationComputer.isTargetOnMap(target));
+    
+    }
+    
+    private void setUpMapForTest() {
+        NavigationComputer.setHeight(100);
+        NavigationComputer.setWidth(100);
+        NavigationComputer.setIslandPositions(Arrays.asList(new Coordinate[]{new Coordinate(50,50)}));
+        NavigationComputer.setIslandSize(10);
     }
 }
