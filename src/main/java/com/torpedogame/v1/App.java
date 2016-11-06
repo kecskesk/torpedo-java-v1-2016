@@ -137,7 +137,8 @@ public class App extends TimerTask
             }
 
             TargetComputer.setMapConfiguration(gameInfoResponse.getGame().getMapConfiguration());
-            target = TargetComputer.getNextTarget(submarine.getPosition(), target);
+            boolean shouldBeOnLeftSide = (submarine.getId() % 2 == 0);
+            target = TargetComputer.getNextTarget(submarine.getPosition(), target, shouldBeOnLeftSide);
             targetStore.put(submarine.getId(), target);
 
             System.out.println("\t\tcurrent target: " + target.toString());

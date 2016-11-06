@@ -22,7 +22,7 @@ public class TargetComputer {
         TargetComputer.mapConfiguration = mapConfiguration;
     }
 
-    public static Coordinate getNextTarget(Coordinate currentPosition, Coordinate currentTarget) {
+    public static Coordinate getNextTarget(Coordinate currentPosition, Coordinate currentTarget, boolean isLeftSide) {
         int safeMapMaxX = (int)Math.floor(mapConfiguration.getWidth() - mapConfiguration.getSonarRange());
         int safeMapMaxY = (int)Math.floor(mapConfiguration.getHeight() - mapConfiguration.getSonarRange());
 
@@ -41,7 +41,8 @@ public class TargetComputer {
         }
 
         if (currentTarget == null || isTargetWithinDistance) {
-            return getRandomTarget(mapWithHole, sonarRange, currentPosition);
+            Geometry halfSideMap = getHalfSideMap(isLeftSide, mapWithHole);
+            return getRandomTarget(halfSideMap, sonarRange, currentPosition);
         } else {
             // We haven't reached the target so continue with it.
             return currentTarget;
@@ -68,15 +69,29 @@ public class TargetComputer {
         Envelope mapBoundary = map.getEnvelopeInternal();
         int maxDistance = TARGET_MAX_DISTANCE_FACTOR * sonarRange;
 
-        while (!targetFound) {
-            int minX = currentPosition.x - maxDistance < mapBoundary.getMinX() ? (int)mapBoundary.getMinX() : (int)(currentPosition.x - maxDistance);
-            int maxX = currentPosition.x + maxDistance > mapBoundary.getMaxX() ? (int)mapBoundary.getMaxX() : (int)(currentPosition.x + maxDistance);
-            int minY = currentPosition.y - maxDistance < mapBoundary.getMinY() ? (int)mapBoundary.getMinY() : (int)(currentPosition.y - maxDistance);
-            int maxY = currentPosition.y + maxDistance > mapBoundary.getMaxY() ? (int)mapBoundary.getMaxY() : (int)(currentPosition.y + maxDistance);
+        // By default, get the whole map boundary as the target range. This is normally half of the map (left or right side).
+        int minX = (int)mapBoundary.getMinX();
+        int maxX = (int)mapBoundary.getMaxX();
+        int minY = (int)mapBoundary.getMinY();
+        int maxY = (int)mapBoundary.getMaxY();
 
+        // If ship is already inside the boundary, select a target within maxDistance of current position.
+        if ((currentPosition.x - maxDistance) > minX && (currentPosition.x + maxDistance) < maxX) {
+            minX = (int)(currentPosition.x - maxDistance);
+            maxX = (int)(currentPosition.x + maxDistance);
+        }
+
+        if ((currentPosition.y - maxDistance) > minY && (currentPosition.y + maxDistance) < maxY) {
+            minY = (int) (currentPosition.y - maxDistance);
+            maxY = (int) (currentPosition.y + maxDistance);
+        }
+
+        // Generate random coordinates until we find one that is on the map and not on the island.
+        while (!targetFound) {
             int targetWidth = rand.nextInt(maxX - minX + 1) + minX;
             int targetHeight = rand.nextInt(maxY - minY +1) + minY;
             nextTargetCoords = new GeometryFactory().createPoint(new Coordinate(targetWidth, targetHeight));
+            // Make sure it's not on the island
             if (nextTargetCoords.within(map)) {
                 targetFound = true;
             }
@@ -84,5 +99,21 @@ public class TargetComputer {
 
         return nextTargetCoords.getCoordinate();
     }
-}
 
+    private static Geometry getHalfSideMap(boolean leftSide, Geometry mapWithHole) {
+        Geometry halfMap;
+        Envelope map = mapWithHole.getEnvelopeInternal();
+
+        if (leftSide) {
+            Envelope halfRectangle = new Envelope(map.getMinX(), (map.getMaxX() / 2), map.getMinY(), (map.getMinY() / 2));
+            Geometry leftSideMap = getMap(halfRectangle);
+            halfMap = mapWithHole.intersection(leftSideMap);
+        } else {
+            Envelope halfRectangle = new Envelope((map.getMaxX() / 2), map.getMaxX(), (map.getMinY() / 2), map.getMinY());
+            Geometry rightSideMap = getMap(halfRectangle);
+            halfMap = mapWithHole.intersection(rightSideMap);
+        }
+
+        return halfMap;
+    }
+}

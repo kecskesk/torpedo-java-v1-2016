@@ -31,7 +31,7 @@ public class TargetComputerTest extends TestCase {
         mapConfiguration.setSonarRange(50);
         TargetComputer.setMapConfiguration(mapConfiguration);
 
-        Coordinate nextTarget = TargetComputer.getNextTarget(new Coordinate(0, 0), null);
+        Coordinate nextTarget = TargetComputer.getNextTarget(new Coordinate(0, 0), null, false);
         assertNotNull(nextTarget);
         assertTrue(nextTarget.x <= mapConfiguration.getWidth());
         assertTrue(nextTarget.y <= mapConfiguration.getHeight());
@@ -46,7 +46,7 @@ public class TargetComputerTest extends TestCase {
         mapConfiguration.setSonarRange(50);
         TargetComputer.setMapConfiguration(mapConfiguration);
 
-        Coordinate nextTarget = TargetComputer.getNextTarget(new Coordinate(10, 10), new Coordinate(20, 20));
+        Coordinate nextTarget = TargetComputer.getNextTarget(new Coordinate(10, 10), new Coordinate(20, 20), true);
         assertNotNull(nextTarget);
         assertTrue(nextTarget.x <= mapConfiguration.getWidth());
         assertTrue(nextTarget.y <= mapConfiguration.getHeight());
@@ -61,7 +61,7 @@ public class TargetComputerTest extends TestCase {
         mapConfiguration.setSonarRange(50);
         TargetComputer.setMapConfiguration(mapConfiguration);
 
-        Coordinate nextTarget = TargetComputer.getNextTarget(new Coordinate(10, 10), new Coordinate(40, 50));
+        Coordinate nextTarget = TargetComputer.getNextTarget(new Coordinate(10, 10), new Coordinate(40, 50), true);
         assertNotNull(nextTarget);
         assertTrue(nextTarget.x == 40);
         assertTrue(nextTarget.y == 50);
