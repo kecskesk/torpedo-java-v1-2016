@@ -70,7 +70,7 @@ public class App extends TimerTask
 
         ShootingComputer.setTorpedoRange(gameInfoResponse.getGame().getMapConfiguration().getTorpedoRange());
         ShootingComputer.setTorpedoSpeed(gameInfoResponse.getGame().getMapConfiguration().getTorpedoSpeed());
-
+        ShootingComputer.setTorpedoExplosionRadius(gameInfoResponse.getGame().getMapConfiguration().getTorpedoExplosionRadius());
         // Start executing the steps for each round
         // This will start the execution immediately, if a little delay is needed,
         // increase the second parameter of the schedule function.
@@ -96,12 +96,19 @@ public class App extends TimerTask
             return;
         }
         
+
         // initialize target store
         if (targetStore == null) {
             targetStore = new HashMap<>(submarineList.size());
         }
 
         for (Submarine submarine : submarineList) {
+            // Extend sonar whenever we can
+            if (gameInfoResponse.getGame().getRound() != 0 && gameInfoResponse.getGame().getRound() % gameInfoResponse.getGame().getMapConfiguration().getExtendedSonarCooldown() == 0) {
+                System.out.println("Sonar extended!");
+                gameEngine.extendSonar(createdGame.getId(), submarine.getId());
+            }
+
             System.out.println("SHIP " + submarine.getId());
             System.out.println("position: " + submarine.getPosition());
             System.out.println("angle: " + submarine.getAngle());
@@ -137,7 +144,7 @@ public class App extends TimerTask
                     }
 
                     // Intercept course
-                    targetStore.put(submarine.getId(), e.getPosition());
+//                    targetStore.put(submarine.getId(), e.getPosition());
                 }
             }
 
