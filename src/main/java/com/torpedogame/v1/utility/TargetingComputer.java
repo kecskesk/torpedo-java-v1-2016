@@ -41,9 +41,9 @@ public class TargetingComputer {
             Coordinate expectedPosition = expectedTargetRoute.get(i);
             double roundToGetThere = currentPosition.distance(expectedPosition) / TORPEDO_SPEED;
             if (roundToGetThere >= i - 1 && roundToGetThere < i) {
+                System.out.println("- Target locked!");
                 impactPosition = expectedPosition;
             }
-            System.out.println();
         }
 
         // The impact position should be always predictable
@@ -53,6 +53,8 @@ public class TargetingComputer {
 
         // This solution the rounding problem is copied from here
         // http://stackoverflow.com/questions/11701399/round-up-to-2-decimal-places-in-java
-        return Math.round(Math.toDegrees(Angle.angle(currentPosition, impactPosition)) * 100.0) / 100.0;
+        // TODO rebase on Robi's solution
+        // getRandomTarget function
+        return Math.round(NavigationComputer.getDegree(currentPosition, impactPosition) * 100.0) / 100.0;
     }
 }

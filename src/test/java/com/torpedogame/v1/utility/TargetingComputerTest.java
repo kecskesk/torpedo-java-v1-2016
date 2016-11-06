@@ -48,5 +48,51 @@ public class TargetingComputerTest extends TestCase {
         assertTrue(actualAngle == expectedAngle); // The steering should be the maximum possible
 
     }
+//    public void testRegression1()
+//    {
+//        // Before
+//        TargetingComputer.setTorpedoSpeed(40);
+//        TargetingComputer.setTorpedoRange(10);
+//
+//        // Arrange
+//        Coordinate currentPos = new Coordinate(854.2704297427024, 170.1201065802797);
+//        Coordinate targetPos = new Coordinate(988.8001880540814, 185.38868751025012);
+//        int targetVelocity = 20;
+//        double targetAngle = 255;
+//
+//        double expectedAngle = 0.0;
+//
+//        // Act
+//        double actualAngle = TargetingComputer.getShootingAngle(currentPos, targetPos, targetVelocity, targetAngle);
+//        System.out.println("asd");
+//        System.out.println(actualAngle);
+//
+//        // Assert
+//        assertTrue(actualAngle == expectedAngle); // The steering should be the maximum possible
+//
+//    }
+//    public void testRegression2()
+//    {
+//        // Before
+//        TargetingComputer.setTorpedoSpeed(40);
+//        TargetingComputer.setTorpedoRange(10);
+//
+//        // Arrange
+//        Coordinate currentPos = new Coordinate(598.2704001669214, 215.3727403655713);
+//        Coordinate targetPos = new Coordinate(709.5949890059077, 248.1917190268549);
+//        int targetVelocity = 20;
+//        double targetAngle = 165;
+//
+//        double expectedAngle = 0.0;
+//
+//        // Act
+//        double actualAngle = TargetingComputer.getShootingAngle(currentPos, targetPos, targetVelocity, targetAngle);
+//        System.out.println("asd");
+//        System.out.println(actualAngle);
+//
+//        // Assert
+//        assertTrue(actualAngle == expectedAngle); // The steering should be the maximum possible
+//
+//    }
 
 }

@@ -6,6 +6,7 @@ import com.torpedogame.v1.service.GameAPI;
 import com.torpedogame.v1.service.GameApiImpl;
 
 import com.torpedogame.v1.utility.NavigationComputer;
+import com.torpedogame.v1.utility.TargetingComputer;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import java.util.HashMap;
@@ -53,6 +54,9 @@ public class App extends TimerTask
         // By increasing this, it may be used to avoid slowing down in high(e.g. 180) degree turns.
         NavigationComputer.setMinSpeed(0.0);
 
+        TargetingComputer.setTorpedoRange(gameInfoResponse.getGame().getMapConfiguration().getTorpedoRange());
+        TargetingComputer.setTorpedoSpeed(gameInfoResponse.getGame().getMapConfiguration().getTorpedoSpeed());
+
         // Start executing the steps for each round
         // This will start the execution immediately, if a little delay is needed,
         // increase the second parameter of the schedule function.
@@ -68,7 +72,7 @@ public class App extends TimerTask
         // update game info
         gameInfoResponse = gameEngine.gameInfo(createdGame.getId());
         System.out.println("####################  ROUND " + gameInfoResponse.getGame().getRound() + "  ####################");
-
+        System.out.println("SCORE : " + gameInfoResponse.getGame().getScores().getScores());
         SubmarinesResponse submarinesResponse = gameEngine.submarines(createdGame.getId());
         List<Submarine> submarineList = submarinesResponse.getSubmarines();
         if (submarineList == null || submarineList.isEmpty()) {
@@ -97,7 +101,21 @@ public class App extends TimerTask
                 System.out.println("\t\tposition: " + e.getPosition());
                 System.out.println("\t\tangle: " + e.getAngle());
                 System.out.println("\t\tvelocity: " + e.getVelocity());
+                if(e.getOwner().getName().equals("BOT")) { // && IT IS A SHIP!
+                    // Red Alert
+                    // TODO Check for torpedo cooldown!
+                    try {
+                        double shootingAngle = TargetingComputer.getShootingAngle(submarine.getPosition(), e.getPosition(), e.getVelocity(), e.getAngle());
+                        System.out.println("- Firing!");
+                        gameEngine.shoot(createdGame.getId(), submarine.getId(), shootingAngle);
+                    } catch (Exception ise) {
+                        System.out.println("- Can not lock on target!" );
+                        ise.printStackTrace();
+                    }
 
+                    // Intercept course
+                    targetStore.put(submarine.getId(), e.getPosition());
+                }
             }
 
             System.out.println("---------------------------------------------------------------------------------");
@@ -108,7 +126,7 @@ public class App extends TimerTask
             if (targetStore.containsKey(submarine.getId())) {
                 target = targetStore.get(submarine.getId());
             } else {
-                target = new Coordinate(1200, 150);
+                target = submarine.getId()%2 == 0?new Coordinate(1200, 150): new Coordinate(300, 350);
                 targetStore.put(submarine.getId(), target);
             }
 
