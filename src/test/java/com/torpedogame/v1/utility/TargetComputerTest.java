@@ -30,7 +30,7 @@ public class TargetComputerTest extends TestCase {
         mapConfiguration.setIslandPositions(Arrays.asList(new Coordinate(500, 500)));
         TargetComputer.setMapConfiguration(mapConfiguration);
 
-        Coordinate nextTarget = TargetComputer.getNextTarget(true, new Coordinate(0, 0), null, 0, 0);
+        Coordinate nextTarget = TargetComputer.getNextTarget(new Coordinate(0, 0), null);
         assertNotNull(nextTarget);
         assertTrue(nextTarget.x <= mapConfiguration.getWidth());
         assertTrue(nextTarget.y <= mapConfiguration.getHeight());
@@ -44,7 +44,7 @@ public class TargetComputerTest extends TestCase {
         mapConfiguration.setIslandPositions(Arrays.asList(new Coordinate(500, 500)));
         TargetComputer.setMapConfiguration(mapConfiguration);
 
-        Coordinate nextTarget = TargetComputer.getNextTarget(false, new Coordinate(10, 10), new Coordinate(20, 20), 0, 20);
+        Coordinate nextTarget = TargetComputer.getNextTarget(new Coordinate(10, 10), new Coordinate(20, 20));
         assertNotNull(nextTarget);
         assertTrue(nextTarget.x <= mapConfiguration.getWidth());
         assertTrue(nextTarget.y <= mapConfiguration.getHeight());
@@ -58,7 +58,7 @@ public class TargetComputerTest extends TestCase {
         mapConfiguration.setIslandPositions(Arrays.asList(new Coordinate(500, 500)));
         TargetComputer.setMapConfiguration(mapConfiguration);
 
-        Coordinate nextTarget = TargetComputer.getNextTarget(false, new Coordinate(10, 10), new Coordinate(40, 50), 0, 20);
+        Coordinate nextTarget = TargetComputer.getNextTarget(new Coordinate(10, 10), new Coordinate(40, 50));
         assertNotNull(nextTarget);
         assertTrue(nextTarget.x == 40);
         assertTrue(nextTarget.y == 50);

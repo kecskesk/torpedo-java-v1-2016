@@ -1,7 +1,6 @@
 package com.torpedogame.v1.utility;
 
 import com.torpedogame.v1.model.game_control.MapConfiguration;
-import com.vividsolutions.jts.algorithm.Angle;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
@@ -26,8 +25,7 @@ public class TargetComputer {
         TargetComputer.mapConfiguration = mapConfiguration;
     }
 
-    public static Coordinate getNextTarget(boolean firstRound, Coordinate currentPosition, Coordinate currentTarget, double currentSpeed, int currentAngle) {
-
+    public static Coordinate getNextTarget(Coordinate currentPosition, Coordinate currentTarget) {
         int safeMapWidth = (int)Math.floor(mapConfiguration.getWidth() * SAFE_MAP_WIDTH_FACTOR);
         int safeMapHeight = (int)Math.floor(mapConfiguration.getHeight() * SAFE_MAP_HEIGHT_FACTOR);
 
@@ -45,8 +43,8 @@ public class TargetComputer {
             isTargetWithinDistance = currentPosPoint.isWithinDistance(currentTargetPoint, TARGET_DISTANCE_THRESHOLD);
         }
 
-        if (firstRound || isTargetWithinDistance) {
-            return getRandomTarget(safeMapWidth, safeMapHeight, mapWithHole, currentPosition, currentAngle, sonarRange);
+        if (currentTarget == null || isTargetWithinDistance) {
+            return getRandomTarget(safeMapWidth, safeMapHeight, mapWithHole, sonarRange);
         } else {
             // We haven't reached the target so continue with it.
             return currentTarget;
@@ -66,7 +64,7 @@ public class TargetComputer {
         return mapFactory.createRectangle();
     }
 
-    private static Coordinate getRandomTarget(int mapWidth, int mapHeight, Geometry map, Coordinate currentPosition, int currentAngle, int sonarRange) {
+    private static Coordinate getRandomTarget(int mapWidth, int mapHeight, Geometry map, int sonarRange) {
         boolean targetFound = false;
         Point nextTargetCoords = null;
         Random rand = new Random();
@@ -75,13 +73,7 @@ public class TargetComputer {
             int targetWidth = rand.nextInt(((mapWidth / 2) - sonarRange) + 1) + sonarRange;
             int targetHeight = rand.nextInt(((mapHeight / 2) - sonarRange) + 1) + sonarRange;
             nextTargetCoords = new GeometryFactory().createPoint(new Coordinate(targetWidth, targetHeight));
-            double newAngle = Angle.toDegrees(Angle.angle(currentPosition, nextTargetCoords.getCoordinate()));
-            if (newAngle < 0) {
-                newAngle = Math.abs(newAngle) + 180;
-            }
-
-            double angleDifference = Math.abs(currentAngle - newAngle);
-            if (nextTargetCoords.within(map) && angleDifference < TARGET_ANGLE_THRESHOLD) {
+            if (nextTargetCoords.within(map)) {
                 targetFound = true;
             }
         }
