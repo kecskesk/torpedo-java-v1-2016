@@ -16,7 +16,7 @@ import java.util.Random;
 public class TargetComputer {
     private static MapConfiguration mapConfiguration;
     private static final int TARGET_MAX_DISTANCE_FACTOR = 2;
-    private static final int TARGET_DISTANCE_THRESHOLD = 15;
+    private static final int TARGET_DISTANCE_THRESHOLD = 50; // TODO increase this, it is too small ships are slowing down
 
     public static void setMapConfiguration(MapConfiguration mapConfiguration) {
         TargetComputer.mapConfiguration = mapConfiguration;

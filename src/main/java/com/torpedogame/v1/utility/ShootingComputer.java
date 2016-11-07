@@ -10,6 +10,7 @@ import java.util.List;
 public class ShootingComputer {
     private static int TORPEDO_SPEED;
     private static int TORPEDO_RANGE;
+    private static int TORPEDO_EXPLOSION_RADIUS;
 
     public static void setTorpedoSpeed(int torpedoSpeed) {
         ShootingComputer.TORPEDO_SPEED = torpedoSpeed;
@@ -17,6 +18,10 @@ public class ShootingComputer {
 
     public static void setTorpedoRange(int torpedoRange) {
         ShootingComputer.TORPEDO_RANGE = torpedoRange;
+    }
+
+    public static void setTorpedoExplosionRadius(int torpedoExplosionRadius) {
+        ShootingComputer.TORPEDO_EXPLOSION_RADIUS = torpedoExplosionRadius;
     }
 
     /**
@@ -42,16 +47,22 @@ public class ShootingComputer {
             double roundToGetThere = currentPosition.distance(expectedPosition) / TORPEDO_SPEED;
             if (roundToGetThere >= i - 1 && roundToGetThere < i) {
                 // check for out of map impact points, don't shoot positions where the ship can't possibly go
-                if (NavigationComputer.isTargetOnMap(targetPosition)) {
-                    System.out.println("- Target locked!");
-                    impactPosition = expectedPosition;
+                if (NavigationComputer.isTargetOnMap(expectedPosition)) {
+                    if (expectedPosition.distance(currentPosition) > TORPEDO_EXPLOSION_RADIUS) {
+                        impactPosition = expectedPosition;
+                        System.out.println("Target locked on [" + impactPosition.x + ", " + impactPosition.y + "].");
+                        System.out.println("Impact in " + i + " rounds.");
+
+                    } else {
+                        System.out.println("Target is too close!");
+                    }
                 }
             }
         }
 
         // The impact position should be always predictable
         if (impactPosition == null) {
-            throw new IllegalStateException("The impact position should be always predictable!");
+            throw new IllegalStateException("Could not acquire lock on target.");
         }
 
         // This solution the rounding problem is copied from here

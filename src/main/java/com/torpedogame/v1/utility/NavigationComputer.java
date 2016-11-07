@@ -21,53 +21,42 @@ public class NavigationComputer {
     private static double MAX_ACCELERATION_PER_ROUND;
     private static double MAX_SPEED;
     private static double MIN_SPEED;
-
-    public static int getWidth() {
-        return width;
-    }
+    private static double SONAR_RANGE;
 
     public static void setWidth(int width) {
         NavigationComputer.width = width;
-    }
-
-    public static int getHeight() {
-        return height;
     }
 
     public static void setHeight(int height) {
         NavigationComputer.height = height;
     }
 
-    public static List<Coordinate> getIslandPositions() {
-        return islandPositions;
-    }
-
     public static void setIslandPositions(List<Coordinate> islandPositions) {
         NavigationComputer.islandPositions = islandPositions;
-    }
-
-    public static int getIslandSize() {
-        return islandSize;
     }
 
     public static void setIslandSize(int islandSize) {
         NavigationComputer.islandSize = islandSize;
     }
 
-    public static void setMaxSteeringPerRound(double maxSteeringPerRound){
+    public static void setMaxSteeringPerRound(double maxSteeringPerRound) {
         NavigationComputer.MAX_STEERING_PER_ROUND = maxSteeringPerRound;
     }
 
-    public static void setMaxAccelerationPerRound(int maxAccelerationPerRound){
+    public static void setMaxAccelerationPerRound(int maxAccelerationPerRound) {
         NavigationComputer.MAX_ACCELERATION_PER_ROUND = maxAccelerationPerRound;
     }
 
-    public static void setMaxSpeed(double maxSpeed){
+    public static void setMaxSpeed(double maxSpeed) {
         NavigationComputer.MAX_SPEED = maxSpeed;
     }
 
-    public static void setMinSpeed(double minSpeed){
+    public static void setMinSpeed(double minSpeed) {
         NavigationComputer.MIN_SPEED = minSpeed;
+    }
+
+    public static void setSonarRange(double sonarRange) {
+        NavigationComputer.SONAR_RANGE = sonarRange;
     }
 
     /**
@@ -190,6 +179,31 @@ public class NavigationComputer {
         }
         
         return true;
+    }
+
+    public static Coordinate getNextTarget(Coordinate currenPosition, Coordinate currentTarget, boolean shouldBeOnLeftSide) {
+        if (currenPosition.distance(currentTarget) > 70) {
+            return currentTarget;
+        }
+        Coordinate c1 = new Coordinate(SONAR_RANGE, height/2);
+        Coordinate c2 = new Coordinate(600, height-SONAR_RANGE);
+        Coordinate c3 = new Coordinate(600, SONAR_RANGE);
+
+        Coordinate c4 = new Coordinate(width - 600, SONAR_RANGE);
+        Coordinate c5 = new Coordinate(width-SONAR_RANGE, height/2);
+        Coordinate c6 = new Coordinate(width-600, height-SONAR_RANGE);
+
+        if(shouldBeOnLeftSide) {
+            if (currentTarget.equals2D(c1)) return c2;
+            if (currentTarget.equals2D(c2)) return c3;
+            if (currentTarget.equals2D(c3)) return c1;
+            return c2;
+        }else {
+            if (currentTarget.equals2D(c4)) return c5;
+            if (currentTarget.equals2D(c5)) return c6;
+            if (currentTarget.equals2D(c6)) return c4;
+            return c4;
+        }
     }
 
 }
