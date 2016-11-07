@@ -1,5 +1,7 @@
 package com.torpedogame.v1;
 
+import com.torpedogame.v1.gui.GuiInfoMessage;
+import com.torpedogame.v1.gui.SparkServer;
 import com.torpedogame.v1.model.protocol.*;
 import com.torpedogame.v1.model.utility.MoveModification;
 import com.torpedogame.v1.service.GameAPI;
@@ -9,6 +11,7 @@ import com.torpedogame.v1.utility.NavigationComputer;
 import com.torpedogame.v1.utility.ShootingComputer;
 import com.torpedogame.v1.utility.TargetComputer;
 import com.vividsolutions.jts.geom.Coordinate;
+import java.util.ArrayList;
 
 import java.util.HashMap;
 import java.util.List;
@@ -26,10 +29,11 @@ public class App extends TimerTask
     private static JoinGameResponse joinedGame = null;
     private static GameInfoResponse gameInfoResponse = null;
     private Map<Integer, Coordinate> targetStore;
+    private static GuiInfoMessage guiInfoMessage = new GuiInfoMessage();
+    private static final SparkServer sparkServer = new SparkServer();
 
     public static void main( String[] args )
     {
-        SparkServer sparkServer = new SparkServer();
         sparkServer.start();
         
         gameEngine = new GameApiImpl();
@@ -79,6 +83,8 @@ public class App extends TimerTask
      */
     @Override
     public void run() {
+        List<Entity> guiEntities = new ArrayList<>();
+        
         // update game info
         gameInfoResponse = gameEngine.gameInfo(createdGame.getId());
         System.out.println("####################  ROUND " + gameInfoResponse.getGame().getRound() + "  ####################");
@@ -89,7 +95,7 @@ public class App extends TimerTask
             System.out.println("Submarine list is empty!");
             return;
         }
-
+        
         // initialize target store
         if (targetStore == null) {
             targetStore = new HashMap<>(submarineList.size());
@@ -109,6 +115,8 @@ public class App extends TimerTask
                 System.out.println("Entity list is null, continue with next submarine.");
                 continue;
             }
+            
+            guiEntities.addAll(entityList);
 
             for (Entity e : entityList) {
                 System.out.println("\t" + e.getType() + " " + e.getId());
@@ -151,6 +159,12 @@ public class App extends TimerTask
             gameEngine.move(createdGame.getId(), submarine.getId(), moveModification.getSpeed(), moveModification.getTurn());
 
             System.out.println("---------------------------------------------------------------------------------");
+            
+            guiInfoMessage.setEntities(guiEntities);
+            guiInfoMessage.setSubmarines(submarineList);
+            guiInfoMessage.setGame(gameInfoResponse.getGame());
+            guiInfoMessage.setTargetStore(targetStore);
+            sparkServer.updateMessage(guiInfoMessage);
         }
     }
 }
