@@ -8,6 +8,8 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.util.GeometricShapeFactory;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -15,8 +17,8 @@ import java.util.Random;
  */
 public class TargetComputer {
     private static MapConfiguration mapConfiguration;
-    private static final int TARGET_MAX_DISTANCE_FACTOR = 2;
-    private static final int TARGET_DISTANCE_THRESHOLD = 15;
+    private static final int TARGET_MAX_DISTANCE_FACTOR = 3;
+    private static final int TARGET_DISTANCE_THRESHOLD = 50;
 
     public static void setMapConfiguration(MapConfiguration mapConfiguration) {
         TargetComputer.mapConfiguration = mapConfiguration;
@@ -62,6 +64,12 @@ public class TargetComputer {
         return mapFactory.createRectangle();
     }
 
+    private static Map<Coordinate, Boolean> getTargetList(Geometry map, int sonarRange, int safeIslandSize) {
+        Envelope realMap = map.getEnvelopeInternal();
+        int spacing = (int) (realMap.getWidth() - safeIslandSize / 2) / (sonarRange - 10);
+        return null;
+    }
+
     private static Coordinate getRandomTarget(Geometry map, int sonarRange, Coordinate currentPosition) {
         boolean targetFound = false;
         Point nextTargetCoords = null;
@@ -105,11 +113,11 @@ public class TargetComputer {
         Envelope map = mapWithHole.getEnvelopeInternal();
 
         if (leftSide) {
-            Envelope halfRectangle = new Envelope(map.getMinX(), (map.getMaxX() / 2), map.getMinY(), (map.getMinY() / 2));
+            Envelope halfRectangle = new Envelope(map.getMinX(), (map.getMaxX() / 2), map.getMinY(), map.getMaxY());
             Geometry leftSideMap = getMap(halfRectangle);
             halfMap = mapWithHole.intersection(leftSideMap);
         } else {
-            Envelope halfRectangle = new Envelope((map.getMaxX() / 2), map.getMaxX(), (map.getMinY() / 2), map.getMinY());
+            Envelope halfRectangle = new Envelope((map.getMaxX() / 2), map.getMaxX(), map.getMinY(), map.getMaxY());
             Geometry rightSideMap = getMap(halfRectangle);
             halfMap = mapWithHole.intersection(rightSideMap);
         }
