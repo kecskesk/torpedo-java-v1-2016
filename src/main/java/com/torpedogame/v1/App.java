@@ -137,7 +137,9 @@ public class App extends TimerTask
                     }
 
                     // Intercept course
-                    targetStore.put(submarine.getId(), e.getPosition());
+                    if (gameInfoResponse.getGame().getRound() > 35) {
+                        targetStore.put(submarine.getId(), e.getPosition());
+                    }
                 }
             }
 

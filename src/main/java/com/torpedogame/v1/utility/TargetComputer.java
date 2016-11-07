@@ -1,5 +1,6 @@
 package com.torpedogame.v1.utility;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.torpedogame.v1.model.game_control.MapConfiguration;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
@@ -8,9 +9,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.util.GeometricShapeFactory;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by user on 11/5/2016.
@@ -19,7 +18,10 @@ public class TargetComputer {
     private static MapConfiguration mapConfiguration;
     private static final int TARGET_MAX_DISTANCE_FACTOR = 3;
     private static final int TARGET_DISTANCE_THRESHOLD = 50;
-
+    private static Map<Boolean, Map<Boolean, List<Coordinate>>> SUBMARINE_TARGETS;
+    static {
+        SUBMARINE_TARGETS = new HashMap<>();
+    }
     public static void setMapConfiguration(MapConfiguration mapConfiguration) {
         TargetComputer.mapConfiguration = mapConfiguration;
     }
@@ -42,9 +44,35 @@ public class TargetComputer {
             isTargetWithinDistance = currentPosPoint.isWithinDistance(currentTargetPoint, TARGET_DISTANCE_THRESHOLD);
         }
 
-        if (currentTarget == null || isTargetWithinDistance) {
-            Geometry halfSideMap = getHalfSideMap(isLeftSide, mapWithHole);
-            return getRandomTarget(halfSideMap, sonarRange, currentPosition);
+        Geometry halfSideMap = getHalfSideMap(isLeftSide, mapWithHole);
+        if (currentTarget == null) {
+            List<Coordinate> targets = getTargetList(halfSideMap, sonarRange, safeIslandSize, isLeftSide);
+            Map<Boolean, List<Coordinate>> targetMap = new HashMap<>();
+            targetMap.put(false, targets);
+            targetMap.put(true, new ArrayList<>());
+            SUBMARINE_TARGETS.put(isLeftSide, targetMap);
+            return targets.get(0);
+        } else if (isTargetWithinDistance) {
+            Map<Boolean, List<Coordinate>> targetForThisSide = SUBMARINE_TARGETS.get(isLeftSide);
+            List<Coordinate> notVisited = targetForThisSide.get(false);
+            List<Coordinate> visited = targetForThisSide.get(true);
+            if (notVisited.contains(currentTarget)) {
+                int indexOfThis = notVisited.indexOf(currentTarget);
+                notVisited.remove(indexOfThis);
+                visited.add(currentTarget);
+            }
+
+            if (notVisited.size() == 0) {
+                notVisited = new ArrayList<>(visited);
+                Collections.reverse(notVisited);
+                Coordinate first = notVisited.get(0);
+                visited.clear();
+                visited.add(first);
+                targetForThisSide.put(true, visited);
+                targetForThisSide.put(false, notVisited);
+            }
+
+            return notVisited.get(0);
         } else {
             // We haven't reached the target so continue with it.
             return currentTarget;
@@ -64,10 +92,22 @@ public class TargetComputer {
         return mapFactory.createRectangle();
     }
 
-    private static Map<Coordinate, Boolean> getTargetList(Geometry map, int sonarRange, int safeIslandSize) {
+    private static List<Coordinate> getTargetList(Geometry map, int sonarRange, int safeIslandSize, boolean isLeftSide) {
         Envelope realMap = map.getEnvelopeInternal();
-        int spacing = (int) (realMap.getWidth() - safeIslandSize / 2) / (sonarRange - 10);
-        return null;
+        List<Coordinate> targetList = new ArrayList<>();
+        int sonarOverLap = 10;
+        int realLength = (int) (realMap.getWidth() - safeIslandSize);
+        int incrementX = sonarRange - sonarOverLap;
+        int count = realLength / incrementX;
+        int totalX = isLeftSide ? (int)realMap.getMinX() : (int)realMap.getMinX() + safeIslandSize;
+        for (int i = 0; i < count; i++) {
+            double y = i % 2 == 0 ? (realMap.getMaxY() - 20) : (realMap.getMinY() - 20);
+            Coordinate target = new Coordinate(totalX, y);
+            totalX += incrementX;
+            targetList.add(target);
+        }
+
+        return targetList;
     }
 
     private static Coordinate getRandomTarget(Geometry map, int sonarRange, Coordinate currentPosition) {
