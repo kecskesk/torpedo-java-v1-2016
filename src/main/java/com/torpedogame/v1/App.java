@@ -71,6 +71,7 @@ public class App extends TimerTask
         NavigationComputer.setIslandPositions(gameInfoResponse.getGame().getMapConfiguration().getIslandPositions());
         NavigationComputer.setIslandSize(gameInfoResponse.getGame().getMapConfiguration().getIslandSize());
         NavigationComputer.setSonarRange(gameInfoResponse.getGame().getMapConfiguration().getSonarRange());
+        NavigationComputer.setExplosionRadius(gameInfoResponse.getGame().getMapConfiguration().getTorpedoExplosionRadius());
 
         ShootingComputer.setTorpedoRange(gameInfoResponse.getGame().getMapConfiguration().getTorpedoRange());
         ShootingComputer.setTorpedoSpeed(gameInfoResponse.getGame().getMapConfiguration().getTorpedoSpeed());
@@ -168,10 +169,11 @@ public class App extends TimerTask
                 System.out.println("\t\tangle: " + e.getAngle());
                 System.out.println("\t\tvelocity: " + e.getVelocity());
                 if(e.getOwner().getName().equals("BOT")) { // && IT IS A SHIP!
-//                    targetStore.put(submarine.getId(), e.getPosition());
+                    targetStore.put(submarine.getId(), NavigationComputer.getInterceptTarget(submarine.getPosition(), e.getPosition(), e.getVelocity(), e.getAngle()));
                     if (cooldownLeft == 0) {
                         // Red Alert
                         // TODO Check for torpedo cooldown!
+                        // TODO SHOOT only if the targets previous vector is the same as the current(its not turning)
                         try {
                             double shootingAngle = ShootingComputer.getShootingAngle(submarine.getPosition(), e.getPosition(), e.getVelocity(), e.getAngle());
                             System.out.println("Firing!");

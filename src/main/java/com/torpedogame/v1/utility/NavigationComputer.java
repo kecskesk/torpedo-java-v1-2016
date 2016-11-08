@@ -22,6 +22,7 @@ public class NavigationComputer {
     private static double MAX_SPEED;
     private static double MIN_SPEED;
     private static double SONAR_RANGE;
+    private static double EXPLOSION_RADIUS;
 
     public static void setWidth(int width) {
         NavigationComputer.width = width;
@@ -57,6 +58,9 @@ public class NavigationComputer {
 
     public static void setSonarRange(double sonarRange) {
         NavigationComputer.SONAR_RANGE = sonarRange;
+    }
+    public static void setExplosionRadius(double explosionRadius) {
+        NavigationComputer.EXPLOSION_RADIUS = explosionRadius;
     }
 
     /**
@@ -179,6 +183,17 @@ public class NavigationComputer {
         }
         
         return true;
+    }
+
+    public static Coordinate getInterceptTarget(Coordinate currenPosition,Coordinate target, double targetVelocity, double targetAngle) {
+        Coordinate expectedPoition = getExpectedRoute(target, targetVelocity, targetAngle, 2).get(2);
+        Coordinate c1 = getExpectedPosition(expectedPoition, EXPLOSION_RADIUS * 1.5, targetAngle -90);
+        Coordinate c2 = getExpectedPosition(expectedPoition, EXPLOSION_RADIUS * 1.5, targetAngle +90);
+        if (c1.distance(islandPositions.get(0))>c2.distance(islandPositions.get(0))) {
+            return c2;
+        } else {
+            return c1;
+        }
     }
 
     public static Coordinate getNextTarget(Coordinate currenPosition, Coordinate currentTarget, boolean shouldBeOnLeftSide) {
