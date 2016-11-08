@@ -40,6 +40,10 @@ public class App extends TimerTask
         sparkServer.start();
         
         gameEngine = new GameApiImpl();
+
+        // SETTING GAME ENGINE URL FROM ARGUMENT LIST
+        GameApiImpl.setServerUrl(args[0]);
+
         System.out.println( "The torpedo program is starting..." );
 
         // Check games
@@ -113,6 +117,8 @@ public class App extends TimerTask
             cooldownStore = new HashMap<>(submarineList.size());
             for (Submarine s: submarineList) cooldownStore.put(s.getId(), 0);
         }
+
+
 
         // Give orders for each submarine
         for (Submarine submarine : submarineList) {

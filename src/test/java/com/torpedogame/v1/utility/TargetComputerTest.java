@@ -61,10 +61,10 @@ public class TargetComputerTest extends TestCase {
         mapConfiguration.setSonarRange(50);
         TargetComputer.setMapConfiguration(mapConfiguration);
 
-        Coordinate nextTarget = TargetComputer.getNextTarget(new Coordinate(10, 10), new Coordinate(40, 50), true);
+        Coordinate nextTarget = TargetComputer.getNextTarget(new Coordinate(10, 10), new Coordinate(400, 500), true);
         assertNotNull(nextTarget);
-        assertTrue(nextTarget.x == 40);
-        assertTrue(nextTarget.y == 50);
+        assertTrue(nextTarget.x == 400);
+        assertTrue(nextTarget.y == 500);
     }
 
 }

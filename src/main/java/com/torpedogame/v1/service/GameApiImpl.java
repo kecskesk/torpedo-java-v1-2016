@@ -5,9 +5,13 @@ import com.github.kevinsawicki.http.HttpRequest;
 import com.torpedogame.v1.model.protocol.*;
 
 public class GameApiImpl implements GameAPI {
-    private static final String SERVER_URL = "http://195.228.45.100:8080/jc16-srv/";
+    private static String SERVER_URL;
     private static final String TOKEN_HEADER_NAME = "TEAMTOKEN";
     private static final String TOKEN_HEADER_VALUE = "355CCC4899499A19FB06D319744CB785";
+
+    public static void setServerUrl(String serverUrl) {
+        SERVER_URL = serverUrl;
+    }
 
     @Override
     public CreateGameResponse createGame() {
