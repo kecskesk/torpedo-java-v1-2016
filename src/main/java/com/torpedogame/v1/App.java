@@ -33,6 +33,7 @@ public class App extends TimerTask
     private static GuiInfoMessage guiInfoMessage = new GuiInfoMessage();
     private static final SparkServer sparkServer = new SparkServer();
     private Map<Integer, Integer> cooldownStore;
+    private static int selectedGameId = -1;
 
     public static void main( String[] args )
     {
@@ -44,45 +45,52 @@ public class App extends TimerTask
         GameApiImpl.setServerUrl(args[0]);
 
         System.out.println( "The torpedo program is starting..." );
-
-        // Check games
-        GameListResponse gameList = gameEngine.gameList();
-        System.out.println(gameList.toString());
         
         // Create a game
         createdGame = gameEngine.createGame();
         System.out.println(createdGame.toString());
 
-        // Join to the created game
-        joinedGame = gameEngine.joinGame(createdGame.getId());
-        System.out.println(joinedGame.toString());
+        // Check games
+        GameListResponse gameList = gameEngine.gameList();
+        System.out.println(gameList.toString());
 
-        // Get game-info
-        gameInfoResponse = gameEngine.gameInfo(createdGame.getId());
+        List<Integer> createdGameIds = gameList.getGames();
+        if (createdGameIds != null && createdGameIds.size() > 0) {
+            selectedGameId = createdGameIds.get(0);
+        }
 
-        // Setup configuration
-        NavigationComputer.setMaxSteeringPerRound(gameInfoResponse.getGame().getMapConfiguration().getMaxSteeringPerRound());
-        NavigationComputer.setMaxAccelerationPerRound(gameInfoResponse.getGame().getMapConfiguration().getMaxAccelerationPerRound());
-        NavigationComputer.setMaxSpeed(gameInfoResponse.getGame().getMapConfiguration().getMaxSpeed());
-        // MinSpeed is not originated from the GameInfo, 0 was measured by hand.
-        // By increasing this, it may be used to avoid slowing down in high(e.g. 180) degree turns.
-        NavigationComputer.setMinSpeed(2 * gameInfoResponse.getGame().getMapConfiguration().getMaxAccelerationPerRound());
-        
-        // Load map into NavComp
-        NavigationComputer.setHeight(gameInfoResponse.getGame().getMapConfiguration().getHeight());
-        NavigationComputer.setWidth(gameInfoResponse.getGame().getMapConfiguration().getWidth());
-        NavigationComputer.setIslandPositions(gameInfoResponse.getGame().getMapConfiguration().getIslandPositions());
-        NavigationComputer.setIslandSize(gameInfoResponse.getGame().getMapConfiguration().getIslandSize());
-        NavigationComputer.setSonarRange(gameInfoResponse.getGame().getMapConfiguration().getSonarRange());
+        if(selectedGameId > -1) {
+            // Join to the created game
+            joinedGame = gameEngine.joinGame(selectedGameId);
+            System.out.println(joinedGame.toString());
 
-        ShootingComputer.setTorpedoRange(gameInfoResponse.getGame().getMapConfiguration().getTorpedoRange());
-        ShootingComputer.setTorpedoSpeed(gameInfoResponse.getGame().getMapConfiguration().getTorpedoSpeed());
-        ShootingComputer.setTorpedoExplosionRadius(gameInfoResponse.getGame().getMapConfiguration().getTorpedoExplosionRadius());
-        // Start executing the steps for each round
-        // This will start the execution immediately, if a little delay is needed,
-        // increase the second parameter of the schedule function.
-        Timer timer = new Timer();
-        timer.schedule(new App(), 0, gameInfoResponse.getGame().getMapConfiguration().getRoundLength());
+            // Get game-info
+            gameInfoResponse = gameEngine.gameInfo(selectedGameId);
+
+            // Setup configuration
+            NavigationComputer.setMaxSteeringPerRound(gameInfoResponse.getGame().getMapConfiguration().getMaxSteeringPerRound());
+            NavigationComputer.setMaxAccelerationPerRound(gameInfoResponse.getGame().getMapConfiguration().getMaxAccelerationPerRound());
+            NavigationComputer.setMaxSpeed(gameInfoResponse.getGame().getMapConfiguration().getMaxSpeed());
+            // MinSpeed is not originated from the GameInfo, 0 was measured by hand.
+            // By increasing this, it may be used to avoid slowing down in high(e.g. 180) degree turns.
+            NavigationComputer.setMinSpeed(2 * gameInfoResponse.getGame().getMapConfiguration().getMaxAccelerationPerRound());
+
+            // Load map into NavComp
+            NavigationComputer.setHeight(gameInfoResponse.getGame().getMapConfiguration().getHeight());
+            NavigationComputer.setWidth(gameInfoResponse.getGame().getMapConfiguration().getWidth());
+            NavigationComputer.setIslandPositions(gameInfoResponse.getGame().getMapConfiguration().getIslandPositions());
+            NavigationComputer.setIslandSize(gameInfoResponse.getGame().getMapConfiguration().getIslandSize());
+            NavigationComputer.setSonarRange(gameInfoResponse.getGame().getMapConfiguration().getSonarRange());
+
+            ShootingComputer.setTorpedoRange(gameInfoResponse.getGame().getMapConfiguration().getTorpedoRange());
+            ShootingComputer.setTorpedoSpeed(gameInfoResponse.getGame().getMapConfiguration().getTorpedoSpeed());
+            ShootingComputer.setTorpedoExplosionRadius(gameInfoResponse.getGame().getMapConfiguration().getTorpedoExplosionRadius());
+            // Start executing the steps for each round
+            // This will start the execution immediately, if a little delay is needed,
+            // increase the second parameter of the schedule function.
+            Timer timer = new Timer();
+            timer.schedule(new App(), 0, gameInfoResponse.getGame().getMapConfiguration().getRoundLength());
+        }
     }
 
     /**
@@ -93,42 +101,39 @@ public class App extends TimerTask
         List<Entity> guiEntities = new ArrayList<>();
         
         // update game info
-        gameInfoResponse = gameEngine.gameInfo(gameId);
+        gameInfoResponse = gameEngine.gameInfo(selectedGameId);
         System.out.println("####################  ROUND " + gameInfoResponse.getGame().getRound() + "  ####################");
         System.out.println("SCORE : " + gameInfoResponse.getGame().getScores().getScores());
 
         // Query the submarines
-        SubmarinesResponse submarinesResponse = gameEngine.submarines(gameId);
+        SubmarinesResponse submarinesResponse = gameEngine.submarines(selectedGameId);
         List<Submarine> submarineList = submarinesResponse.getSubmarines();
         if (submarineList == null || submarineList.isEmpty()) {
             System.out.println("Submarine list is empty!");
             return;
         }
-        
 
         // Initialize stores
         if (targetStore == null) {
             targetStore = new HashMap<>(submarineList.size());
 
-            for (Submarine s: submarineList) targetStore.put(s.getId(), (s.getId() % 2 == 0)?new Coordinate(gameInfoResponse.getGame().getMapConfiguration().getSonarRange(), gameInfoResponse.getGame().getMapConfiguration().getHeight()/2) : new Coordinate(gameInfoResponse.getGame().getMapConfiguration().getWidth() - 600, gameInfoResponse.getGame().getMapConfiguration().getSonarRange()));
+            for (Submarine s: submarineList) {
+                targetStore.put(s.getId(), (s.getId() % 2 == 0) ? new Coordinate(gameInfoResponse.getGame().getMapConfiguration().getSonarRange(), gameInfoResponse.getGame().getMapConfiguration().getHeight() / 2) : new Coordinate(gameInfoResponse.getGame().getMapConfiguration().getWidth() - 600, gameInfoResponse.getGame().getMapConfiguration().getSonarRange()));
+            }
         }
+
         if (cooldownStore == null) {
             cooldownStore = new HashMap<>(submarineList.size());
             for (Submarine s: submarineList) cooldownStore.put(s.getId(), 0);
         }
-
-
 
         // Give orders for each submarine
         for (Submarine submarine : submarineList) {
             // Extend sonar whenever we can
             if (gameInfoResponse.getGame().getRound() != 0 && gameInfoResponse.getGame().getRound() % gameInfoResponse.getGame().getMapConfiguration().getExtendedSonarCooldown() == 0) {
                 System.out.println("Sonar extended!");
-                gameEngine.extendSonar(gameId, submarine.getId());
+                gameEngine.extendSonar(selectedGameId, submarine.getId());
             }
-
-
-
 
             // Try to get previous target from target store.
             Coordinate target = null;
@@ -148,9 +153,9 @@ public class App extends TimerTask
 
             // Calculate move modification value and move the submarine
             MoveModification moveModification = NavigationComputer.getMoveModification(submarine.getPosition(), target, submarine.getVelocity(), submarine.getAngle());
-            gameEngine.move(createdGame.getId(), submarine.getId(), moveModification.getSpeed(), moveModification.getTurn());
+            gameEngine.move(selectedGameId, submarine.getId(), moveModification.getSpeed(), moveModification.getTurn());
 
-            SonarResponse sonarResponse = gameEngine.sonar(createdGame.getId(), submarine.getId());
+            SonarResponse sonarResponse = gameEngine.sonar(selectedGameId, submarine.getId());
             List<Entity> entityList = sonarResponse.getEntities();
 
             if (entityList == null) {
@@ -179,7 +184,7 @@ public class App extends TimerTask
                         try {
                             double shootingAngle = ShootingComputer.getShootingAngle(submarine.getPosition(), e.getPosition(), e.getVelocity(), e.getAngle());
                             System.out.println("Firing!");
-                            gameEngine.shoot(createdGame.getId(), submarine.getId(), shootingAngle);
+                            gameEngine.shoot(selectedGameId, submarine.getId(), shootingAngle);
                             cooldownStore.put(submarine.getId(), gameInfoResponse.getGame().getMapConfiguration().getTorpedoCooldown());
                         } catch (Exception ise) {
                             System.out.println(ise.getMessage());
