@@ -73,10 +73,10 @@ public class NavigationComputer {
         double minimumDistance = 10000; // targetPosition.distance(positionWithoutMovementModification);
         MoveModification minimumMoveModification = new MoveModification(0,0);
 
-        for(double d = -MAX_STEERING_PER_ROUND; d <= MAX_STEERING_PER_ROUND; d += 2*MAX_STEERING_PER_ROUND/40) {
+        for (double d = -MAX_STEERING_PER_ROUND; d <= MAX_STEERING_PER_ROUND; d += 2*MAX_STEERING_PER_ROUND/40) {
             double tempAngle = currentAngle + d;
             // There is a slower speed level
-            if(currentVelocity > MIN_SPEED) {
+            if (currentVelocity > MIN_SPEED) {
                 Coordinate slowerPosition = getExpectedPosition(currentPosition, currentVelocity - MAX_ACCELERATION_PER_ROUND, tempAngle);
                 double slowerDistance = targetPosition.distance(slowerPosition);
 
@@ -105,8 +105,6 @@ public class NavigationComputer {
                 minimumDistance = expectedDistance;
                 minimumMoveModification = new MoveModification(0 , d);
             }
-
-
         }
 
         return minimumMoveModification;
@@ -150,7 +148,7 @@ public class NavigationComputer {
 
         // Add the current target position for round 0.
         expectedPositions.add(currentPosition);
-        for(int i = 0; i < length; i++) {
+        for (int i = 0; i < length; i++) {
             // Calculate the next coordinate based on the previous.
             expectedPositions.add(NavigationComputer.getExpectedPosition(expectedPositions.get(i), currentVelocity, currentAngle));
         }

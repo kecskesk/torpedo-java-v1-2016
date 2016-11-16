@@ -2,6 +2,7 @@ package com.torpedogame.v1;
 
 import com.torpedogame.v1.gui.GuiInfoMessage;
 import com.torpedogame.v1.gui.SparkServer;
+import com.torpedogame.v1.model.game_control.MapConfiguration;
 import com.torpedogame.v1.model.protocol.*;
 import com.torpedogame.v1.model.utility.MoveModification;
 import com.torpedogame.v1.service.GameAPI;
@@ -66,30 +67,31 @@ public class App extends TimerTask
 
             // Get game-info
             gameInfoResponse = gameEngine.gameInfo(selectedGameId);
+            MapConfiguration mapConfiguration = gameInfoResponse.getGame().getMapConfiguration();
 
             // Setup configuration
-            NavigationComputer.setMaxSteeringPerRound(gameInfoResponse.getGame().getMapConfiguration().getMaxSteeringPerRound());
-            NavigationComputer.setMaxAccelerationPerRound(gameInfoResponse.getGame().getMapConfiguration().getMaxAccelerationPerRound());
-            NavigationComputer.setMaxSpeed(gameInfoResponse.getGame().getMapConfiguration().getMaxSpeed());
+            NavigationComputer.setMaxSteeringPerRound(mapConfiguration.getMaxSteeringPerRound());
+            NavigationComputer.setMaxAccelerationPerRound(mapConfiguration.getMaxAccelerationPerRound());
+            NavigationComputer.setMaxSpeed(mapConfiguration.getMaxSpeed());
             // MinSpeed is not originated from the GameInfo, 0 was measured by hand.
-            // By increasing this, it may be used to avoid slowing down in high(e.g. 180) degree turns.
-            NavigationComputer.setMinSpeed(2 * gameInfoResponse.getGame().getMapConfiguration().getMaxAccelerationPerRound());
+            // By increasing this, it may be used to avoid slowing down in high (e.g. 180) degree turns.
+            NavigationComputer.setMinSpeed(2 * mapConfiguration.getMaxAccelerationPerRound());
 
             // Load map into NavComp
-            NavigationComputer.setHeight(gameInfoResponse.getGame().getMapConfiguration().getHeight());
-            NavigationComputer.setWidth(gameInfoResponse.getGame().getMapConfiguration().getWidth());
-            NavigationComputer.setIslandPositions(gameInfoResponse.getGame().getMapConfiguration().getIslandPositions());
-            NavigationComputer.setIslandSize(gameInfoResponse.getGame().getMapConfiguration().getIslandSize());
-            NavigationComputer.setSonarRange(gameInfoResponse.getGame().getMapConfiguration().getSonarRange());
+            NavigationComputer.setHeight(mapConfiguration.getHeight());
+            NavigationComputer.setWidth(mapConfiguration.getWidth());
+            NavigationComputer.setIslandPositions(mapConfiguration.getIslandPositions());
+            NavigationComputer.setIslandSize(mapConfiguration.getIslandSize());
+            NavigationComputer.setSonarRange(mapConfiguration.getSonarRange());
 
-            ShootingComputer.setTorpedoRange(gameInfoResponse.getGame().getMapConfiguration().getTorpedoRange());
-            ShootingComputer.setTorpedoSpeed(gameInfoResponse.getGame().getMapConfiguration().getTorpedoSpeed());
-            ShootingComputer.setTorpedoExplosionRadius(gameInfoResponse.getGame().getMapConfiguration().getTorpedoExplosionRadius());
+            ShootingComputer.setTorpedoRange(mapConfiguration.getTorpedoRange());
+            ShootingComputer.setTorpedoSpeed(mapConfiguration.getTorpedoSpeed());
+            ShootingComputer.setTorpedoExplosionRadius(mapConfiguration.getTorpedoExplosionRadius());
             // Start executing the steps for each round
             // This will start the execution immediately, if a little delay is needed,
             // increase the second parameter of the schedule function.
             Timer timer = new Timer();
-            timer.schedule(new App(), 0, gameInfoResponse.getGame().getMapConfiguration().getRoundLength());
+            timer.schedule(new App(), 0, mapConfiguration.getRoundLength());
         }
     }
 
@@ -100,10 +102,13 @@ public class App extends TimerTask
     public void run() {
         List<Entity> guiEntities = new ArrayList<>();
         
-        // update game info
+        // Get the current game informations
         gameInfoResponse = gameEngine.gameInfo(selectedGameId);
-        System.out.println("####################  ROUND " + gameInfoResponse.getGame().getRound() + "  ####################");
-        System.out.println("SCORE : " + gameInfoResponse.getGame().getScores().getScores());
+        GameInfoResponse.Game currentGame = gameInfoResponse.getGame();
+        MapConfiguration mapConfiguration = currentGame.getMapConfiguration();
+
+        System.out.println("####################  ROUND " + currentGame.getRound() + "  ####################");
+        System.out.println("SCORE : " + currentGame.getScores().getScores());
 
         // Query the submarines
         SubmarinesResponse submarinesResponse = gameEngine.submarines(selectedGameId);
@@ -113,24 +118,33 @@ public class App extends TimerTask
             return;
         }
 
-        // Initialize stores
+        // Initialize the target store
         if (targetStore == null) {
             targetStore = new HashMap<>(submarineList.size());
 
             for (Submarine s: submarineList) {
-                targetStore.put(s.getId(), (s.getId() % 2 == 0) ? new Coordinate(gameInfoResponse.getGame().getMapConfiguration().getSonarRange(), gameInfoResponse.getGame().getMapConfiguration().getHeight() / 2) : new Coordinate(gameInfoResponse.getGame().getMapConfiguration().getWidth() - 600, gameInfoResponse.getGame().getMapConfiguration().getSonarRange()));
+                Coordinate newTarget = null;
+                if (s.getId() % 2 == 0) {
+                    newTarget = new Coordinate(mapConfiguration.getSonarRange(), mapConfiguration.getHeight() / 2);
+                } else {
+                    newTarget = new Coordinate(mapConfiguration.getWidth() - 600, mapConfiguration.getSonarRange());
+                }
+                targetStore.put(s.getId(), newTarget);
             }
         }
 
+        // Initialize the cooldown store
         if (cooldownStore == null) {
             cooldownStore = new HashMap<>(submarineList.size());
-            for (Submarine s: submarineList) cooldownStore.put(s.getId(), 0);
+            for (Submarine s: submarineList) {
+                cooldownStore.put(s.getId(), 0);
+            }
         }
 
-        // Give orders for each submarine
+        // Give orders to each submarine
         for (Submarine submarine : submarineList) {
-            // Extend sonar whenever we can
-            if (gameInfoResponse.getGame().getRound() != 0 && gameInfoResponse.getGame().getRound() % gameInfoResponse.getGame().getMapConfiguration().getExtendedSonarCooldown() == 0) {
+            // Use extended sonar whenever we can
+            if (currentGame.getRound() != 0 && (currentGame.getRound() % mapConfiguration.getExtendedSonarCooldown() == 0)) {
                 System.out.println("Sonar extended!");
                 gameEngine.extendSonar(selectedGameId, submarine.getId());
             }
@@ -141,20 +155,17 @@ public class App extends TimerTask
                 target = targetStore.get(submarine.getId());
             }
 
-            boolean shouldBeOnLeftSide = (submarine.getId() % 2 == 0);
-            target = NavigationComputer.getNextTarget(submarine.getPosition(), target, shouldBeOnLeftSide);
+            boolean submarineShouldBeOnLeftSide = (submarine.getId() % 2 == 0);
+            target = NavigationComputer.getNextTarget(submarine.getPosition(), target, submarineShouldBeOnLeftSide);
             targetStore.put(submarine.getId(), target);
 
-            System.out.println("SHIP " + submarine.getId());
-            System.out.println("position: " + submarine.getPosition());
-            System.out.println("angle: " + submarine.getAngle());
-            System.out.println("speed: " + submarine.getVelocity());
-            System.out.println("current target: " + target.toString());
+            printSubmarineInformation(submarine, target);
 
             // Calculate move modification value and move the submarine
             MoveModification moveModification = NavigationComputer.getMoveModification(submarine.getPosition(), target, submarine.getVelocity(), submarine.getAngle());
             gameEngine.move(selectedGameId, submarine.getId(), moveModification.getSpeed(), moveModification.getTurn());
 
+            // Get the sonar information
             SonarResponse sonarResponse = gameEngine.sonar(selectedGameId, submarine.getId());
             List<Entity> entityList = sonarResponse.getEntities();
 
@@ -166,18 +177,16 @@ public class App extends TimerTask
             guiEntities.addAll(entityList);
 
             int cooldownLeft = cooldownStore.get(submarine.getId());
-            cooldownLeft = cooldownLeft > 0? cooldownLeft - 1: 0;
+            cooldownLeft = cooldownLeft > 0 ? cooldownLeft - 1 : 0;
             cooldownStore.put(submarine.getId(), cooldownLeft);
 
             System.out.println("visible entities:");
+
+            // Loop through each entity the sonar is seeing.
             for (Entity e : entityList) {
-                System.out.println("\t" + e.getType() + " " + e.getId());
-                System.out.println("\t\towner: " + e.getOwner());
-                System.out.println("\t\tposition: " + e.getPosition());
-                System.out.println("\t\tangle: " + e.getAngle());
-                System.out.println("\t\tvelocity: " + e.getVelocity());
+                printEntityInformation(e);
+
                 if(e.getOwner().getName().equals("BOT")) { // && IT IS A SHIP!
-//                    targetStore.put(submarine.getId(), e.getPosition());
                     if (cooldownLeft == 0) {
                         // Red Alert
                         // TODO Check for torpedo cooldown!
@@ -185,24 +194,15 @@ public class App extends TimerTask
                             double shootingAngle = ShootingComputer.getShootingAngle(submarine.getPosition(), e.getPosition(), e.getVelocity(), e.getAngle());
                             System.out.println("Firing!");
                             gameEngine.shoot(selectedGameId, submarine.getId(), shootingAngle);
-                            cooldownStore.put(submarine.getId(), gameInfoResponse.getGame().getMapConfiguration().getTorpedoCooldown());
+                            cooldownStore.put(submarine.getId(), mapConfiguration.getTorpedoCooldown());
                         } catch (Exception ise) {
                             System.out.println(ise.getMessage());
                         }
-
-                        // Intercept course
-                        // Han: "Keep your distance Chewie but don't look like you're trying to keep your distance."
-                        //
-                        // Chewbacca: "Ngyargh yargh."
-                        //
-                        // Han: "I don't know...fly casual."
-
                     } else {
                         System.out.println("Reload is complete in " + cooldownLeft + " rounds.");
                     }
                 }
             }
-
 
             System.out.println("---------------------------------------------------------------------------------");
             
@@ -210,7 +210,25 @@ public class App extends TimerTask
             guiInfoMessage.setSubmarines(submarineList);
             guiInfoMessage.setGame(gameInfoResponse.getGame());
             guiInfoMessage.setTargetStore(targetStore);
+
+            // Update spark server with new informations
             sparkServer.updateMessage(guiInfoMessage);
         }
+    }
+
+    private void printSubmarineInformation(Submarine submarine, Coordinate target) {
+        System.out.println("SHIP " + submarine.getId());
+        System.out.println("position: " + submarine.getPosition());
+        System.out.println("angle: " + submarine.getAngle());
+        System.out.println("speed: " + submarine.getVelocity());
+        System.out.println("current target: " + target.toString());
+    }
+
+    private void printEntityInformation(Entity e) {
+        System.out.println("\t" + e.getType() + " " + e.getId());
+        System.out.println("\t\towner: " + e.getOwner());
+        System.out.println("\t\tposition: " + e.getPosition());
+        System.out.println("\t\tangle: " + e.getAngle());
+        System.out.println("\t\tvelocity: " + e.getVelocity());
     }
 }
