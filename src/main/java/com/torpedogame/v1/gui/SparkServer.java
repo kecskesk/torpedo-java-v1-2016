@@ -16,6 +16,7 @@ import static spark.Spark.before;
 public class SparkServer extends Thread {
 
     private GuiInfoMessage guiInfoMessage = new GuiInfoMessage();
+    private GuiMoveRequest guiMoveRequest = null;
 
     /**
      * Very simple REST endpoint
@@ -37,6 +38,17 @@ public class SparkServer extends Thread {
                 }
 
                 return jsonToSend;
+            }
+        });
+
+        Spark.post(new Route("/rest/move") {
+            @Override
+            public Object handle(final Request request, final Response response) {
+                int submarineId = Integer.valueOf(request.queryParams("id"));
+                double x = Double.valueOf(request.queryParams("x"));
+                double y = Double.valueOf(request.queryParams("y"));
+                guiMoveRequest = new GuiMoveRequest(submarineId, x, y);
+                return "ok";
             }
         });
     }
@@ -62,5 +74,9 @@ public class SparkServer extends Thread {
 
     public void updateMessage(GuiInfoMessage guiInfoMessage) {
         this.guiInfoMessage = guiInfoMessage;
+    }
+
+    public GuiMoveRequest getGuiMoveRequest() {
+        return guiMoveRequest;
     }
 }
