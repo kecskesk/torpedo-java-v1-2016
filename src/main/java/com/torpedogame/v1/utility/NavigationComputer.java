@@ -181,6 +181,7 @@ public class NavigationComputer {
         return true;
     }
 
+    // TODO Delete the fuck up
     public static Coordinate getNextTarget(Coordinate currenPosition, Coordinate currentTarget, boolean shouldBeOnLeftSide) {
         if (currenPosition.distance(currentTarget) > 70) {
             return currentTarget;

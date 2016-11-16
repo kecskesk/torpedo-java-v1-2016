@@ -9,7 +9,6 @@ import com.torpedogame.v1.service.GameApiImpl;
 
 import com.torpedogame.v1.utility.NavigationComputer;
 import com.torpedogame.v1.utility.ShootingComputer;
-import com.torpedogame.v1.utility.TargetComputer;
 import com.vividsolutions.jts.geom.Coordinate;
 import java.util.ArrayList;
 
@@ -94,12 +93,12 @@ public class App extends TimerTask
         List<Entity> guiEntities = new ArrayList<>();
         
         // update game info
-        gameInfoResponse = gameEngine.gameInfo(createdGame.getId());
+        gameInfoResponse = gameEngine.gameInfo(gameId);
         System.out.println("####################  ROUND " + gameInfoResponse.getGame().getRound() + "  ####################");
         System.out.println("SCORE : " + gameInfoResponse.getGame().getScores().getScores());
 
         // Query the submarines
-        SubmarinesResponse submarinesResponse = gameEngine.submarines(createdGame.getId());
+        SubmarinesResponse submarinesResponse = gameEngine.submarines(gameId);
         List<Submarine> submarineList = submarinesResponse.getSubmarines();
         if (submarineList == null || submarineList.isEmpty()) {
             System.out.println("Submarine list is empty!");
@@ -125,7 +124,7 @@ public class App extends TimerTask
             // Extend sonar whenever we can
             if (gameInfoResponse.getGame().getRound() != 0 && gameInfoResponse.getGame().getRound() % gameInfoResponse.getGame().getMapConfiguration().getExtendedSonarCooldown() == 0) {
                 System.out.println("Sonar extended!");
-                gameEngine.extendSonar(createdGame.getId(), submarine.getId());
+                gameEngine.extendSonar(gameId, submarine.getId());
             }
 
 
@@ -137,7 +136,6 @@ public class App extends TimerTask
                 target = targetStore.get(submarine.getId());
             }
 
-            TargetComputer.setMapConfiguration(gameInfoResponse.getGame().getMapConfiguration());
             boolean shouldBeOnLeftSide = (submarine.getId() % 2 == 0);
             target = NavigationComputer.getNextTarget(submarine.getPosition(), target, shouldBeOnLeftSide);
             targetStore.put(submarine.getId(), target);
