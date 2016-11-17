@@ -1,13 +1,10 @@
 package com.torpedogame.v1.gui;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Date;
 import spark.Filter;
 import spark.Request;
 import spark.Response;
-import spark.Route;
-import spark.Spark;
-import static spark.Spark.before;
+import static spark.Spark.*;
 
 /**
  *
@@ -24,11 +21,7 @@ public class SparkServer extends Thread {
     @Override
     public void run() {
         enableCORS("*", "*", "*");
-        Spark.get(new Route("/rest/getInfos") {
-            @Override
-            public Object handle(final Request request,
-                    final Response response) {
-
+        get("/rest/getInfos",(req, resp) -> {
                 ObjectMapper mapper = new ObjectMapper();
                 String jsonToSend = "";
                 try {
@@ -39,18 +32,19 @@ public class SparkServer extends Thread {
 
                 return jsonToSend;
             }
+        );
+
+        post("/rest/move", (req, resp) -> {
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                guiMoveRequest = mapper.readValue(req.body(), GuiMoveRequest.class);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+            return "ok";
         });
 
-        Spark.post(new Route("/rest/move") {
-            @Override
-            public Object handle(final Request request, final Response response) {
-                int submarineId = Integer.valueOf(request.queryParams("id"));
-                double x = Double.valueOf(request.queryParams("x"));
-                double y = Double.valueOf(request.queryParams("y"));
-                guiMoveRequest = new GuiMoveRequest(submarineId, x, y);
-                return "ok";
-            }
-        });
+        options("rest/move", (req, resp) -> "ok");
     }
 
     /**
@@ -67,7 +61,8 @@ public class SparkServer extends Thread {
             public void handle(Request request, Response response) {
                 response.header("Access-Control-Allow-Origin", origin);
                 response.header("Access-Control-Request-Method", methods);
-                response.header("Access-Control-Allow-Headers", headers);
+                response.header("Access-Control-Allow-Headers", "content-type");
+                response.type("application/json");
             }
         });
     }
@@ -78,5 +73,9 @@ public class SparkServer extends Thread {
 
     public GuiMoveRequest getGuiMoveRequest() {
         return guiMoveRequest;
+    }
+
+    public void clearMoveRequest() {
+        guiMoveRequest = null;
     }
 }

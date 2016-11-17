@@ -1,6 +1,7 @@
 package com.torpedogame.v1;
 
 import com.torpedogame.v1.gui.GuiInfoMessage;
+import com.torpedogame.v1.gui.GuiMoveRequest;
 import com.torpedogame.v1.gui.SparkServer;
 import com.torpedogame.v1.model.game_control.MapConfiguration;
 import com.torpedogame.v1.model.protocol.*;
@@ -103,8 +104,9 @@ public class App extends TimerTask
      */
     @Override
     public void run() {
-
-        // Get the current game information
+        List<Entity> guiEntities = new ArrayList<>();
+        
+        // Get the current game informations
         gameInfoResponse = gameEngine.gameInfo(selectedGameId);
         GameInfoResponse.Game currentGame = gameInfoResponse.getGame();
         MapConfiguration mapConfiguration = currentGame.getMapConfiguration();
@@ -169,7 +171,27 @@ public class App extends TimerTask
                 gameEngine.extendSonar(selectedGameId, submarine.getId());
             }
 
-            printSubmarineInformation(submarine);
+            Coordinate target = null;
+            if (targetStore.containsKey(submarine.getId())) {
+                target = targetStore.get(submarine.getId());
+            }
+
+            GuiMoveRequest moveRequest = sparkServer.getGuiMoveRequest();
+            if (moveRequest != null && moveRequest.getSubmarineId() == submarine.getId()) {
+                target = new Coordinate(moveRequest.getX(), moveRequest.getY());
+                sparkServer.clearMoveRequest();
+            } else {
+                boolean submarineShouldBeOnLeftSide = (submarine.getId() % 2 == 0);
+                target = NavigationComputer.getNextTarget(submarine.getPosition(), target, submarineShouldBeOnLeftSide);
+            }
+
+            targetStore.put(submarine.getId(), target);
+
+            printSubmarineInformation(submarine, target);
+
+            // Calculate move modification value and move the submarine
+            MoveModification moveModification = NavigationComputer.getMoveModification(submarine.getPosition(), target, submarine.getVelocity(), submarine.getAngle());
+            gameEngine.move(selectedGameId, submarine.getId(), moveModification.getSpeed(), moveModification.getTurn());
 
             // Get the sonar information
             SonarResponse sonarResponse = gameEngine.sonar(selectedGameId, submarine.getId());
@@ -179,7 +201,7 @@ public class App extends TimerTask
                 System.out.println("Entity list is null, continue with next submarine.");
                 continue;
             }
-
+            
             guiEntities.addAll(entityList);
 
             int cooldownLeft = cooldownStore.get(submarine.getId());
@@ -192,7 +214,7 @@ public class App extends TimerTask
             for (Entity e : entityList) {
                 printEntityInformation(e);
 
-                if(!e.getOwner().getName().equals("Thats No Moon") && e.getType().equals("Submarine")) { // && IT IS A SHIP!
+                if(e.getOwner().getName().equals("BOT")) { // && IT IS A SHIP!
                     if (cooldownLeft == 0) {
                         // Red Alert
                         // TODO Check for torpedo cooldown!
@@ -211,13 +233,10 @@ public class App extends TimerTask
             }
 
             System.out.println("---------------------------------------------------------------------------------");
-
-
-        }
-         */
-        guiInfoMessage.setEntities(visibleEntities);
-        guiInfoMessage.setSubmarines(submarineList);
-        guiInfoMessage.setGame(gameInfoResponse.getGame());
+            */
+            guiInfoMessage.setEntities(guiEntities);
+            guiInfoMessage.setSubmarines(submarineList);
+            guiInfoMessage.setGame(gameInfoResponse.getGame());
 
         // Update spark server with new informations
         sparkServer.updateMessage(guiInfoMessage);

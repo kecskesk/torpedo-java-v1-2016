@@ -8,6 +8,9 @@ public class GuiMoveRequest {
     private double x;
     private double y;
 
+    public GuiMoveRequest() {
+    }
+
     public GuiMoveRequest(int submarineId, double x, double y) {
         this.submarineId = submarineId;
         this.x = x;
