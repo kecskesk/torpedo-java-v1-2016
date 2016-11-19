@@ -4,6 +4,7 @@ import com.torpedogame.v1.gui.GuiInfoMessage;
 import com.torpedogame.v1.gui.SparkServer;
 import com.torpedogame.v1.model.game_control.MapConfiguration;
 import com.torpedogame.v1.model.protocol.*;
+import com.torpedogame.v1.model.strategy.Fleet;
 import com.torpedogame.v1.model.utility.MoveModification;
 import com.torpedogame.v1.service.GameAPI;
 import com.torpedogame.v1.service.GameApiImpl;
@@ -11,6 +12,8 @@ import com.torpedogame.v1.service.GameApiImpl;
 import com.torpedogame.v1.utility.NavigationComputer;
 import com.torpedogame.v1.utility.ShootingComputer;
 import com.vividsolutions.jts.geom.Coordinate;
+
+import java.io.InputStream;
 import java.util.ArrayList;
 
 import java.util.HashMap;
@@ -35,6 +38,8 @@ public class App extends TimerTask
     private static final SparkServer sparkServer = new SparkServer();
     private Map<Integer, Integer> cooldownStore;
     private static int selectedGameId = -1;
+
+    private static Fleet fleet = new Fleet();
 
     public static void main( String[] args )
     {
@@ -113,6 +118,24 @@ public class App extends TimerTask
         // Query the submarines
         SubmarinesResponse submarinesResponse = gameEngine.submarines(selectedGameId);
         List<Submarine> submarineList = submarinesResponse.getSubmarines();
+
+        fleet.setTarget(new Coordinate(900, submarineList.get(0).getPosition().y > 400 ? 600: 200 ));
+        fleet.setSubmarines(submarineList);
+        // TODO Found better way for this
+        // Set relative position of submarines
+        for (Submarine s : submarineList) {
+            Integer id = s.getId();
+            Coordinate relPos;
+            if(id % 3 == 0) {
+                relPos = new Coordinate(-2*gameInfoResponse.getGame().getMapConfiguration().getTorpedoExplosionRadius(), 0);
+            } else if (id % 3 == 1) {
+                relPos = new Coordinate(2* gameInfoResponse.getGame().getMapConfiguration().getTorpedoExplosionRadius(), 0);
+            } else {
+                relPos = new Coordinate(0, 2*gameInfoResponse.getGame().getMapConfiguration().getTorpedoExplosionRadius());
+            }
+            fleet.setSubmarinesRelativePosition(id, relPos);
+        }
+
         if (submarineList == null || submarineList.isEmpty()) {
             System.out.println("Submarine list is empty!");
             return;
@@ -121,7 +144,7 @@ public class App extends TimerTask
         // Initialize the target store
         if (targetStore == null) {
             targetStore = new HashMap<>(submarineList.size());
-
+            targetStore.put(42, new Coordinate(42,42));
             for (Submarine s: submarineList) {
                 Coordinate newTarget = null;
                 if (s.getId() % 2 == 0) {
@@ -132,6 +155,19 @@ public class App extends TimerTask
                 targetStore.put(s.getId(), newTarget);
             }
         }
+        // Set new target
+        if(fleet.hasReachedTarget()) {
+            fleet.setTarget(new Coordinate(900, 400));
+        }
+
+        // Move the fleet
+        Map<Integer, MoveModification> moveModifications = fleet.getMoveModifications();
+        for (Integer shipId: moveModifications.keySet()) {
+            MoveModification moveModification = moveModifications.get(shipId);
+            gameEngine.move(selectedGameId, shipId, moveModification.getSpeed(), moveModification.getTurn());
+        }
+
+
 
         // Initialize the cooldown store
         if (cooldownStore == null) {
@@ -161,9 +197,9 @@ public class App extends TimerTask
 
             printSubmarineInformation(submarine, target);
 
-            // Calculate move modification value and move the submarine
+//             Calculate move modification value and move the submarine
             MoveModification moveModification = NavigationComputer.getMoveModification(submarine.getPosition(), target, submarine.getVelocity(), submarine.getAngle());
-            gameEngine.move(selectedGameId, submarine.getId(), moveModification.getSpeed(), moveModification.getTurn());
+//            gameEngine.move(selectedGameId, submarine.getId(), moveModification.getSpeed(), moveModification.getTurn());
 
             // Get the sonar information
             SonarResponse sonarResponse = gameEngine.sonar(selectedGameId, submarine.getId());
@@ -186,7 +222,7 @@ public class App extends TimerTask
             for (Entity e : entityList) {
                 printEntityInformation(e);
 
-                if(!e.getOwner().getName().equals("Thats No Moon")) { // && IT IS A SHIP!
+                if(!e.getOwner().getName().equals("Thats No Moon") && e.getType().equals("Submarine")) { // && IT IS A SHIP!
                     if (cooldownLeft == 0) {
                         // Red Alert
                         // TODO Check for torpedo cooldown!

@@ -209,7 +209,7 @@ public class NavigationComputerTest  {
         assertTrue(NavigationComputer.isTargetOnMap(target));
     
     }
-    @Test
+
     private void setUpMapForTest() {
         NavigationComputer.setHeight(100);
         NavigationComputer.setWidth(100);

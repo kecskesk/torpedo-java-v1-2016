@@ -69,4 +69,6 @@ public class ShootingComputer {
         // http://stackoverflow.com/questions/11701399/round-up-to-2-decimal-places-in-java
         return Math.round(GeometryUtility.getDegree(currentPosition, impactPosition) * 100.0) / 100.0;
     }
+
+    public static boolean isTorpedoDangerous() {return false;}
 }
