@@ -1,8 +1,10 @@
 package com.torpedogame.v1.model.strategy;
 
+import com.torpedogame.v1.model.protocol.Entity;
 import com.torpedogame.v1.model.protocol.Submarine;
 import com.torpedogame.v1.model.utility.MoveModification;
 import com.torpedogame.v1.utility.NavigationComputer;
+import com.torpedogame.v1.utility.ShootingComputer;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import java.util.HashMap;
@@ -11,7 +13,7 @@ import java.util.Map;
 
 /**
  * This class represents a collection of ships that are supposed to move in formation.
- * <p>
+ *
  * Created by Dombi Soma on 19/11/2016.
  */
 public class Fleet {
@@ -22,7 +24,13 @@ public class Fleet {
     // The fleet will move towards this coordinate in formation
     private Coordinate target;
 
+    // The list of the fleet members
+    // SHOULD BE SET BY EVERY ROUND
     private List<Submarine> submarines;
+
+    // The list of the visible entities
+    // SHOULD BE SET BY EVERY ROUND
+    private List <Entity> visibleEntities;
 
     private final Integer TARGET_REACHING_THRESHOLD = 100;
     /**
@@ -32,6 +40,7 @@ public class Fleet {
      */
     public Map<Integer, MoveModification> getMoveModifications() {
         Map<Integer, MoveModification> moveModifications = new HashMap<>();
+        // TODO Check for dangerous torpedoes
 
         // For each registered ship
         for (Submarine submarine : submarines) {
@@ -49,6 +58,31 @@ public class Fleet {
     }
 
     /**
+     * IMPORTANT: Only include ships that can fire and are not on cooldown.
+     * @return
+     */
+    public Map<Integer, Double> getShootingAngles() {
+        Map<Integer, Double> shootingAngles = new HashMap<>();
+        for(Submarine submarine : submarines){
+            if(submarine.getTorpedoCooldown() == 0) {
+                for (Entity e: visibleEntities){
+                    if(!e.getOwner().getName().equals("Thats No Moon") && e.getType().equals("Submarine")) {
+                        try {
+                            shootingAngles.put(submarine.getId(), ShootingComputer.getShootingAngle(submarine.getPosition(), e.getPosition(), e.getVelocity(), e.getAngle()));
+                            break;
+                        } catch (Exception ise) {
+                            System.out.println(ise.getMessage());
+                        }
+                    }
+                }
+            } else {
+                System.out.println("Reload is complete in " + submarine.getTorpedoCooldown() + " rounds.");
+            }
+        }
+        return shootingAngles;
+    }
+
+    /**
      * @return True if the fleet has reached it's current target
      */
     public boolean hasReachedTarget() {
@@ -57,6 +91,7 @@ public class Fleet {
         }
         return false;
     }
+
     /**
      * This function sets the relative position for the given ship,
      * and adds it to the fleet if previously was not present.
@@ -65,7 +100,30 @@ public class Fleet {
         this.formation.put(submarineId, relativePosition);
     }
 
-    public void setSubmarines(List<Submarine> subs) {this.submarines = subs;}
+    /**
+     * This function sets the ship list of the fleet and designates their relative position
+     */
+    public void setSubmarines(List<Submarine> subs) {
+        // Set relative position of submarines
+        for (Submarine s : subs) {
+            Integer id = s.getId();
+            Coordinate relPos;
+            if(id % 3 == 0) {
+                relPos = new Coordinate(-200, 0);
+            } else if (id % 3 == 1) {
+                relPos = new Coordinate(200, 0);
+            } else {
+                relPos = new Coordinate(0, 200);
+            }
+            this.setSubmarinesRelativePosition(id, relPos);
+        }
+
+        this.submarines = subs;
+    }
+
+    public void setVisibleEntities(List<Entity> entities) {
+        this.visibleEntities = entities;
+    }
 
     /**
      * Pretty obvious...
@@ -77,4 +135,5 @@ public class Fleet {
     public Coordinate getTarget() {
         return target;
     }
+
 }

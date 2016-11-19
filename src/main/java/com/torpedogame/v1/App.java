@@ -33,10 +33,8 @@ public class App extends TimerTask
     private static GameInfoResponse gameInfoResponse = null;
     // TODO maybe create a class for these stores and
     // initialize them in the main function
-    private Map<Integer, Coordinate> targetStore;
     private static GuiInfoMessage guiInfoMessage = new GuiInfoMessage();
     private static final SparkServer sparkServer = new SparkServer();
-    private Map<Integer, Integer> cooldownStore;
     private static int selectedGameId = -1;
 
     private static Fleet fleet = new Fleet();
@@ -105,9 +103,8 @@ public class App extends TimerTask
      */
     @Override
     public void run() {
-        List<Entity> guiEntities = new ArrayList<>();
-        
-        // Get the current game informations
+
+        // Get the current game information
         gameInfoResponse = gameEngine.gameInfo(selectedGameId);
         GameInfoResponse.Game currentGame = gameInfoResponse.getGame();
         MapConfiguration mapConfiguration = currentGame.getMapConfiguration();
@@ -118,47 +115,32 @@ public class App extends TimerTask
         // Query the submarines
         SubmarinesResponse submarinesResponse = gameEngine.submarines(selectedGameId);
         List<Submarine> submarineList = submarinesResponse.getSubmarines();
-
-        fleet.setTarget(new Coordinate(900, submarineList.get(0).getPosition().y > 400 ? 600: 200 ));
-        fleet.setSubmarines(submarineList);
-        // TODO Found better way for this
-        // Set relative position of submarines
-        for (Submarine s : submarineList) {
-            Integer id = s.getId();
-            Coordinate relPos;
-            if(id % 3 == 0) {
-                relPos = new Coordinate(-2*gameInfoResponse.getGame().getMapConfiguration().getTorpedoExplosionRadius(), 0);
-            } else if (id % 3 == 1) {
-                relPos = new Coordinate(2* gameInfoResponse.getGame().getMapConfiguration().getTorpedoExplosionRadius(), 0);
-            } else {
-                relPos = new Coordinate(0, 2*gameInfoResponse.getGame().getMapConfiguration().getTorpedoExplosionRadius());
-            }
-            fleet.setSubmarinesRelativePosition(id, relPos);
-        }
-
         if (submarineList == null || submarineList.isEmpty()) {
             System.out.println("Submarine list is empty!");
             return;
         }
+        fleet.setSubmarines(submarineList);
 
-        // Initialize the target store
-        if (targetStore == null) {
-            targetStore = new HashMap<>(submarineList.size());
-            targetStore.put(42, new Coordinate(42,42));
-            for (Submarine s: submarineList) {
-                Coordinate newTarget = null;
-                if (s.getId() % 2 == 0) {
-                    newTarget = new Coordinate(mapConfiguration.getWidth() / 2, mapConfiguration.getHeight()/4);
-                } else {
-                    newTarget = new Coordinate(mapConfiguration.getWidth() / 2, mapConfiguration.getHeight()/4);
-                }
-                targetStore.put(s.getId(), newTarget);
-            }
-        }
-        // Set new target
+        // Set new target if needed
+        // TODO Find better way to do this
+        fleet.setTarget(new Coordinate(900, submarineList.get(0).getPosition().y > 400 ? 600: 200 ));
         if(fleet.hasReachedTarget()) {
             fleet.setTarget(new Coordinate(900, 400));
         }
+
+        // Gather sonar information for fleet
+        List <Entity> visibleEntities = new ArrayList<>();
+        for (Submarine submarine : submarineList) {
+            // TODO Extend sonars somehow for fleet
+            SonarResponse sonarResponse = gameEngine.sonar(selectedGameId, submarine.getId());
+            List<Entity> entityList = sonarResponse.getEntities();
+            if (entityList == null) {
+                System.out.println("Entity list is null, continue with next submarine.");
+            } else {
+                visibleEntities.addAll(entityList);
+            }
+        }
+        fleet.setVisibleEntities(visibleEntities);
 
         // Move the fleet
         Map<Integer, MoveModification> moveModifications = fleet.getMoveModifications();
@@ -167,16 +149,18 @@ public class App extends TimerTask
             gameEngine.move(selectedGameId, shipId, moveModification.getSpeed(), moveModification.getTurn());
         }
 
-
-
-        // Initialize the cooldown store
-        if (cooldownStore == null) {
-            cooldownStore = new HashMap<>(submarineList.size());
-            for (Submarine s: submarineList) {
-                cooldownStore.put(s.getId(), 0);
-            }
+        // Fire torpedoes
+        Map<Integer, Double> shootingAngles = fleet.getShootingAngles();
+        for (Integer shipId: shootingAngles.keySet()) {
+            Double shootingAngle = shootingAngles.get(shipId);
+            gameEngine.shoot(selectedGameId, shipId,shootingAngle);
         }
 
+
+
+
+
+        /*
         // Give orders to each submarine
         for (Submarine submarine : submarineList) {
             // Use extended sonar whenever we can
@@ -185,21 +169,7 @@ public class App extends TimerTask
                 gameEngine.extendSonar(selectedGameId, submarine.getId());
             }
 
-            // Try to get previous target from target store.
-            Coordinate target = null;
-            if (targetStore.containsKey(submarine.getId())) {
-                target = targetStore.get(submarine.getId());
-            }
-
-            boolean submarineShouldBeOnLeftSide = (submarine.getId() % 2 == 0);
-            target = NavigationComputer.getNextTarget(submarine.getPosition(), target, submarineShouldBeOnLeftSide);
-            targetStore.put(submarine.getId(), target);
-
-            printSubmarineInformation(submarine, target);
-
-//             Calculate move modification value and move the submarine
-            MoveModification moveModification = NavigationComputer.getMoveModification(submarine.getPosition(), target, submarine.getVelocity(), submarine.getAngle());
-//            gameEngine.move(selectedGameId, submarine.getId(), moveModification.getSpeed(), moveModification.getTurn());
+            printSubmarineInformation(submarine);
 
             // Get the sonar information
             SonarResponse sonarResponse = gameEngine.sonar(selectedGameId, submarine.getId());
@@ -209,7 +179,7 @@ public class App extends TimerTask
                 System.out.println("Entity list is null, continue with next submarine.");
                 continue;
             }
-            
+
             guiEntities.addAll(entityList);
 
             int cooldownLeft = cooldownStore.get(submarine.getId());
@@ -241,23 +211,23 @@ public class App extends TimerTask
             }
 
             System.out.println("---------------------------------------------------------------------------------");
-            
-            guiInfoMessage.setEntities(guiEntities);
-            guiInfoMessage.setSubmarines(submarineList);
-            guiInfoMessage.setGame(gameInfoResponse.getGame());
-            guiInfoMessage.setTargetStore(targetStore);
 
-            // Update spark server with new informations
-            sparkServer.updateMessage(guiInfoMessage);
+
         }
+         */
+        guiInfoMessage.setEntities(visibleEntities);
+        guiInfoMessage.setSubmarines(submarineList);
+        guiInfoMessage.setGame(gameInfoResponse.getGame());
+
+        // Update spark server with new informations
+        sparkServer.updateMessage(guiInfoMessage);
     }
 
-    private void printSubmarineInformation(Submarine submarine, Coordinate target) {
+    private void printSubmarineInformation(Submarine submarine) {
         System.out.println("SHIP " + submarine.getId());
         System.out.println("position: " + submarine.getPosition());
         System.out.println("angle: " + submarine.getAngle());
         System.out.println("speed: " + submarine.getVelocity());
-        System.out.println("current target: " + target.toString());
     }
 
     private void printEntityInformation(Entity e) {
