@@ -177,7 +177,7 @@ public class App extends TimerTask
             }
 
             GuiMoveRequest moveRequest = sparkServer.getGuiMoveRequest();
-            if (moveRequest != null && moveRequest.getSubmarineId() == submarine.getId()) {
+            if (moveRequest != null && moveRequest.getSubmarineIds() != null && moveRequest.getSubmarineIds().contains(submarine.getId())) {
                 target = new Coordinate(moveRequest.getX(), moveRequest.getY());
                 sparkServer.clearMoveRequest();
             } else {
