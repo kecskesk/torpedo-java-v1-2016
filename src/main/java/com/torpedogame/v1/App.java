@@ -125,9 +125,9 @@ public class App extends TimerTask
             for (Submarine s: submarineList) {
                 Coordinate newTarget = null;
                 if (s.getId() % 2 == 0) {
-                    newTarget = new Coordinate(mapConfiguration.getSonarRange(), mapConfiguration.getHeight() / 2);
+                    newTarget = new Coordinate(mapConfiguration.getWidth() / 2, mapConfiguration.getHeight()/4);
                 } else {
-                    newTarget = new Coordinate(mapConfiguration.getWidth() - 600, mapConfiguration.getSonarRange());
+                    newTarget = new Coordinate(mapConfiguration.getWidth() / 2, mapConfiguration.getHeight()/4);
                 }
                 targetStore.put(s.getId(), newTarget);
             }
@@ -186,7 +186,7 @@ public class App extends TimerTask
             for (Entity e : entityList) {
                 printEntityInformation(e);
 
-                if(e.getOwner().getName().equals("BOT")) { // && IT IS A SHIP!
+                if(!e.getOwner().getName().equals("Thats No Moon")) { // && IT IS A SHIP!
                     if (cooldownLeft == 0) {
                         // Red Alert
                         // TODO Check for torpedo cooldown!

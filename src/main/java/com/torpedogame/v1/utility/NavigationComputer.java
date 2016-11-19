@@ -184,25 +184,27 @@ public class NavigationComputer {
         if (currenPosition.distance(currentTarget) > 70) {
             return currentTarget;
         }
-        Coordinate c1 = new Coordinate(SONAR_RANGE, height/2);
-        Coordinate c2 = new Coordinate(600, height-SONAR_RANGE);
-        Coordinate c3 = new Coordinate(600, SONAR_RANGE);
 
-        Coordinate c4 = new Coordinate(width - 600, SONAR_RANGE);
-        Coordinate c5 = new Coordinate(width-SONAR_RANGE, height/2);
-        Coordinate c6 = new Coordinate(width-600, height-SONAR_RANGE);
-
-        if(shouldBeOnLeftSide) {
-            if (currentTarget.equals2D(c1)) return c2;
-            if (currentTarget.equals2D(c2)) return c3;
-            if (currentTarget.equals2D(c3)) return c1;
-            return c2;
-        }else {
-            if (currentTarget.equals2D(c4)) return c5;
-            if (currentTarget.equals2D(c5)) return c6;
-            if (currentTarget.equals2D(c6)) return c4;
-            return c4;
-        }
+        return new Coordinate(width/2, height/2);
+//        Coordinate c1 = new Coordinate(SONAR_RANGE, height/2);
+//        Coordinate c2 = new Coordinate(600, height-SONAR_RANGE);
+//        Coordinate c3 = new Coordinate(600, SONAR_RANGE);
+//
+//        Coordinate c4 = new Coordinate(width - 600, SONAR_RANGE);
+//        Coordinate c5 = new Coordinate(width-SONAR_RANGE, height/2);
+//        Coordinate c6 = new Coordinate(width-600, height-SONAR_RANGE);
+//
+//        if(shouldBeOnLeftSide) {
+//            if (currentTarget.equals2D(c1)) return c2;
+//            if (currentTarget.equals2D(c2)) return c3;
+//            if (currentTarget.equals2D(c3)) return c1;
+//            return c2;
+//        }else {
+//            if (currentTarget.equals2D(c4)) return c5;
+//            if (currentTarget.equals2D(c5)) return c6;
+//            if (currentTarget.equals2D(c6)) return c4;
+//            return c4;
+//        }
     }
 
 }

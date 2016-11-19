@@ -2,9 +2,8 @@ package com.torpedogame.v1.utility;
 
 import com.torpedogame.v1.model.utility.MoveModification;
 import com.vividsolutions.jts.geom.Coordinate;
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -12,24 +11,14 @@ import java.util.List;
 /**
  * Created by Dombi Soma on 03/11/2016.
  */
-public class NavigationComputerTest extends TestCase {
-
-    public NavigationComputerTest( String testName )
-    {
-        super( testName );
-    }
-
-    public static Test suite()
-    {
-        return new TestSuite( NavigationComputerTest.class );
-    }
+public class NavigationComputerTest  {
 
     /**
      * This function tests if a full turn is needed then the NavigationComputer returns the max angle.
      * In this case the ship is moving upwards parallel with Y axis and the target has the same Y coordinate as the ship.
      * If the maxSteeringAngle is smaller then 90 degree, the NavigationComputer should return the maxSteeringAngle in this case.
      */
-
+    @Test
     public void testFullTurn()
     {
         // Before
@@ -52,7 +41,7 @@ public class NavigationComputerTest extends TestCase {
         assertTrue(moveModification.getSpeed() == 0); // The steering should be the maximum possible
 
     }
-
+    @Test
     public void testStraightForwardMovement()
     {
         // Before
@@ -77,7 +66,7 @@ public class NavigationComputerTest extends TestCase {
     }
 
     // TODO fuckin refactor this to parametrized test cases please somebody
-    // TODO hint upgrade to JUnit 4.^
+    @Test
     public void testExpectedPositionUpward(){
         // Arrange
         Coordinate currentPos = new Coordinate(1, 2);
@@ -93,7 +82,7 @@ public class NavigationComputerTest extends TestCase {
         // Assert
         assertTrue(actualPos.equals(expectedPos));
     }
-
+    @Test
     public void testExpectedPositionDownward(){
         // Arrange
         Coordinate currentPos = new Coordinate(1, 2);
@@ -108,7 +97,7 @@ public class NavigationComputerTest extends TestCase {
         // Assert
         assertTrue(actualPos.equals(expectedPos));
     }
-
+    @Test
     public void testExpectedPositionRightward(){
         // Arrange
         Coordinate currentPos = new Coordinate(1, 2);
@@ -123,7 +112,7 @@ public class NavigationComputerTest extends TestCase {
         // Assert
         assertTrue(actualPos.equals(expectedPos));
     }
-
+    @Test
     public void testExpectedPositionLeftward(){
         // Arrange
         Coordinate currentPos = new Coordinate(1, 2);
@@ -138,7 +127,7 @@ public class NavigationComputerTest extends TestCase {
         // Assert
         assertTrue(actualPos.equals(expectedPos));
     }
-
+    @Test
     public void testExpectedPositionDiagonal(){
         // Arrange
         Coordinate currentPos = new Coordinate(1, 2);
@@ -154,7 +143,7 @@ public class NavigationComputerTest extends TestCase {
         // Assert
         assertTrue(actualPos.equals(expectedPos));
     }
-
+    @Test
     public void testExpectedRoute(){
         // Arrange
         Coordinate currentPos = new Coordinate(200, 200);
@@ -179,52 +168,54 @@ public class NavigationComputerTest extends TestCase {
     }
     
     // TESTS FOR isTargetOnMap -----------------------------
-    
+    @Test
     public void testShootLeft(){
         setUpMapForTest();
         Coordinate target = new Coordinate(-1 , 12);
         assertFalse(NavigationComputer.isTargetOnMap(target));
     }
-    
+    @Test
     public void testShootRight(){
         setUpMapForTest();
         Coordinate target = new Coordinate(121 , 12);
         assertFalse(NavigationComputer.isTargetOnMap(target));
     
     }
-    
+    @Test
     public void testShootUp(){
         setUpMapForTest();
         Coordinate target = new Coordinate(12 , 551);
         assertFalse(NavigationComputer.isTargetOnMap(target));
     
     }
-    
+    @Test
     public void testShootDown(){
         setUpMapForTest();
         Coordinate target = new Coordinate(-1 , -154);
         assertFalse(NavigationComputer.isTargetOnMap(target));
     
     }
-    
+    @Test
     public void testShootIsland(){
         setUpMapForTest();
         Coordinate target = new Coordinate(45 , 45);
         assertFalse(NavigationComputer.isTargetOnMap(target));
     
     }
-    
+    @Test
     public void testShootCorrect(){
         setUpMapForTest();
         Coordinate target = new Coordinate(25 , 25);
         assertTrue(NavigationComputer.isTargetOnMap(target));
     
     }
-    
+    @Test
     private void setUpMapForTest() {
         NavigationComputer.setHeight(100);
         NavigationComputer.setWidth(100);
         NavigationComputer.setIslandPositions(Arrays.asList(new Coordinate[]{new Coordinate(50,50)}));
         NavigationComputer.setIslandSize(10);
     }
+
+
 }
