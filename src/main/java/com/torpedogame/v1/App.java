@@ -104,8 +104,6 @@ public class App extends TimerTask
      */
     @Override
     public void run() {
-        List<Entity> guiEntities = new ArrayList<>();
-        
         // Get the current game informations
         gameInfoResponse = gameEngine.gameInfo(selectedGameId);
         GameInfoResponse.Game currentGame = gameInfoResponse.getGame();
@@ -124,14 +122,21 @@ public class App extends TimerTask
         fleet.setSubmarines(submarineList);
 
         // Set new target if needed
-        // TODO Find better way to do this
-        fleet.setTarget(new Coordinate(900, submarineList.get(0).getPosition().y > 400 ? 600: 200 ));
-        if(fleet.hasReachedTarget()) {
-            fleet.setTarget(new Coordinate(900, 400));
+        GuiMoveRequest moveRequest = sparkServer.getGuiMoveRequest();
+        // first check if gui move request is sent.
+        if (moveRequest != null) {
+            fleet.setTarget(new Coordinate(moveRequest.getX(), moveRequest.getY()));
+            sparkServer.clearMoveRequest();
+        } else {
+            // TODO Find better way to do this
+            fleet.setTarget(new Coordinate(900, submarineList.get(0).getPosition().y > 400 ? 600 : 200));
+            if (fleet.hasReachedTarget()) {
+                fleet.setTarget(new Coordinate(900, 400));
+            }
         }
 
         // Gather sonar information for fleet
-        List <Entity> visibleEntities = new ArrayList<>();
+        List<Entity> visibleEntities = new ArrayList<>();
         for (Submarine submarine : submarineList) {
             // TODO Extend sonars somehow for fleet
             SonarResponse sonarResponse = gameEngine.sonar(selectedGameId, submarine.getId());
@@ -234,7 +239,7 @@ public class App extends TimerTask
 
             System.out.println("---------------------------------------------------------------------------------");
             */
-            guiInfoMessage.setEntities(guiEntities);
+            guiInfoMessage.setEntities(visibleEntities);
             guiInfoMessage.setSubmarines(submarineList);
             guiInfoMessage.setGame(gameInfoResponse.getGame());
 
