@@ -28,6 +28,8 @@ import java.util.TimerTask;
  */
 public class App extends TimerTask
 {
+    //TODO Add ability to connect to ongoin game
+    //TODO unexpected exceptions prevents us from continuing a game
     private static GameAPI gameEngine;
     private static CreateGameResponse createdGame = null;
     private static JoinGameResponse joinedGame = null;
@@ -79,7 +81,7 @@ public class App extends TimerTask
             NavigationComputer.setMaxSpeed(mapConfiguration.getMaxSpeed());
             // MinSpeed is not originated from the GameInfo, 0 was measured by hand.
             // By increasing this, it may be used to avoid slowing down in high (e.g. 180) degree turns.
-            NavigationComputer.setMinSpeed(2 * mapConfiguration.getMaxAccelerationPerRound());
+            NavigationComputer.setMinSpeed(mapConfiguration.getMaxAccelerationPerRound()); //(2 * mapConfiguration.getMaxAccelerationPerRound());
 
             // Load map into NavComp
             NavigationComputer.setHeight(mapConfiguration.getHeight());
@@ -127,12 +129,11 @@ public class App extends TimerTask
         if (moveRequest != null) {
             fleet.setTarget(new Coordinate(moveRequest.getX(), moveRequest.getY()));
             sparkServer.clearMoveRequest();
-        } else {
-            // TODO Find better way to do this
-            fleet.setTarget(new Coordinate(900, submarineList.get(0).getPosition().y > 400 ? 600 : 200));
-            if (fleet.hasReachedTarget()) {
-                fleet.setTarget(new Coordinate(900, 400));
-            }
+        }
+
+
+        if (fleet.hasReachedTarget()) {
+            fleet.setTarget(null);
         }
 
         // Gather sonar information for fleet
@@ -163,7 +164,7 @@ public class App extends TimerTask
             gameEngine.shoot(selectedGameId, shipId,shootingAngle);
         }
 
-
+        fleet.printFleetInfo();
 
 
 
@@ -206,7 +207,7 @@ public class App extends TimerTask
                 System.out.println("Entity list is null, continue with next submarine.");
                 continue;
             }
-            
+
             guiEntities.addAll(entityList);
 
             int cooldownLeft = cooldownStore.get(submarine.getId());
@@ -247,12 +248,7 @@ public class App extends TimerTask
         sparkServer.updateMessage(guiInfoMessage);
     }
 
-    private void printSubmarineInformation(Submarine submarine) {
-        System.out.println("SHIP " + submarine.getId());
-        System.out.println("position: " + submarine.getPosition());
-        System.out.println("angle: " + submarine.getAngle());
-        System.out.println("speed: " + submarine.getVelocity());
-    }
+
 
     private void printEntityInformation(Entity e) {
         System.out.println("\t" + e.getType() + " " + e.getId());

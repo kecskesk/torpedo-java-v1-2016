@@ -7,6 +7,7 @@ import com.torpedogame.v1.utility.NavigationComputer;
 import com.torpedogame.v1.utility.ShootingComputer;
 import com.vividsolutions.jts.geom.Coordinate;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,7 @@ import java.util.Map;
  * Created by Dombi Soma on 19/11/2016.
  */
 public class Fleet {
-    // This map stores the submarines with their relative position in the formation
+    // This map stores the submarines with their relative position to the FLAGSHIP
     private Map<Integer, Coordinate> formation = new HashMap<>();
 
     // The current movement target of the fleet
@@ -26,13 +27,17 @@ public class Fleet {
 
     // The list of the fleet members
     // SHOULD BE SET BY EVERY ROUND
+    // ***The first element of the list is considered as the FLAGSHIP,
+    // ***which is a pivot point for all the other ships in formation movement.
     private List<Submarine> submarines;
 
     // The list of the visible entities
     // SHOULD BE SET BY EVERY ROUND
     private List <Entity> visibleEntities;
 
-    private final Integer TARGET_REACHING_THRESHOLD = 100;
+    private int fleetSpeed = 10;
+
+    private final Integer TARGET_REACHING_THRESHOLD = 50;
     /**
      * This function ensures the fleet to keep formation.
      * TODO implement move in formation logic here
@@ -44,16 +49,27 @@ public class Fleet {
 
         // For each registered ship
         for (Submarine submarine : submarines) {
-
-            Coordinate relativePosition = new Coordinate();
-            // Calculate target
-            if (formation.containsKey(submarine.getId())) {
-                relativePosition = formation.get(submarine.getId());
+            if (target != null) {
+                if (submarines.indexOf(submarine) == 0) {
+                    // FLAGSHIP MoveModification
+                    MoveModification flagshipMM = NavigationComputer.getMoveModification(submarine.getPosition(), target, submarine.getVelocity(), submarine.getAngle());
+                    if (submarine.getVelocity() > fleetSpeed)flagshipMM.setSpeed(0);
+                    moveModifications.put(submarine.getId(), flagshipMM);
+                } else {
+                    // Other MoveModification
+                    Coordinate relativePosition = new Coordinate();
+                    // Calculate target
+                    if (formation.containsKey(submarine.getId())) {
+                        relativePosition = formation.get(submarine.getId());
+                    }
+                    Coordinate flagshipCoordinate = submarines.get(0).getPosition();
+                    Coordinate targetCoordinate = new Coordinate(flagshipCoordinate.x + relativePosition.x, flagshipCoordinate.y + relativePosition.y);
+                    moveModifications.put(submarine.getId(), NavigationComputer.getMoveModification(submarine.getPosition(), targetCoordinate, submarine.getVelocity(), submarine.getAngle()));
+                }
+            } else if (submarine.getVelocity() > 0) {
+                moveModifications.put(submarine.getId(), NavigationComputer.getSlowerMoveModification());
             }
-            Coordinate targetCoordinate = new Coordinate(target.x + relativePosition.x, target.y + relativePosition.y);
-            moveModifications.put(submarine.getId(), NavigationComputer.getMoveModification(submarine.getPosition(), targetCoordinate, submarine.getVelocity(), submarine.getAngle()));
         }
-
         return moveModifications;
     }
 
@@ -86,10 +102,13 @@ public class Fleet {
      * @return True if the fleet has reached it's current target
      */
     public boolean hasReachedTarget() {
+        if (target == null) return false;
         for(Submarine sub : submarines) {
-            if(sub.getPosition().distance(target) < TARGET_REACHING_THRESHOLD) return true;
+            Coordinate relPos = formation.get(sub.getId());
+            Coordinate targetPos = new Coordinate(target.x + relPos.x, target.y + relPos.y);
+            if(sub.getPosition().distance(targetPos) > TARGET_REACHING_THRESHOLD) return false;
         }
-        return false;
+        return true;
     }
 
     /**
@@ -105,17 +124,17 @@ public class Fleet {
      */
     public void setSubmarines(List<Submarine> subs) {
         // Set relative position of submarines
-        for (Submarine s : subs) {
+        List<Coordinate> coordinates = new ArrayList<>();
+        coordinates.add(new Coordinate(0, 0));
+        coordinates.add(new Coordinate(100, 100));
+        coordinates.add(new Coordinate(-100, 100));
+
+
+        for (int i = 0; i < subs.size(); i++) {
+            Submarine s = subs.get(i);
             Integer id = s.getId();
-            Coordinate relPos;
-            if(id % 3 == 0) {
-                relPos = new Coordinate(-200, 0);
-            } else if (id % 3 == 1) {
-                relPos = new Coordinate(200, 0);
-            } else {
-                relPos = new Coordinate(0, 200);
-            }
-            this.setSubmarinesRelativePosition(id, relPos);
+            System.out.println("rel pos for " + id + " is " + coordinates.get(i));
+            this.setSubmarinesRelativePosition(id, coordinates.get(i));
         }
 
         this.submarines = subs;
@@ -136,4 +155,14 @@ public class Fleet {
         return target;
     }
 
+    public void printFleetInfo() {
+        for(Submarine s: submarines) printSubmarineInformation(s);
+    }
+
+    private void printSubmarineInformation(Submarine submarine) {
+        System.out.println("SHIP " + submarine.getId());
+        System.out.println("position: " + submarine.getPosition());
+        System.out.println("angle: " + submarine.getAngle());
+        System.out.println("speed: " + submarine.getVelocity());
+    }
 }

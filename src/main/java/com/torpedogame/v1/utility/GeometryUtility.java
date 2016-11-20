@@ -20,4 +20,12 @@ public class GeometryUtility {
         }
         return angle;
     }
+
+    public static double sumDegrees (double d1, double d2) {
+        if (d1 + d2 > 360)
+            return d1 + d2 -360;
+        else if (d1 + d2 < 0)
+            return d1 + d2 + 360;
+        else return d1 + d2;
+    }
 }
