@@ -104,7 +104,7 @@ public class NavigationComputer {
 
             if (expectedDistance < minimumDistance) {
                 minimumDistance = expectedDistance;
-                minimumMoveModification = new MoveModification(0 , d); // TODO this way it always start the turning in one direction even if turning to the other direction would be much faster
+                minimumMoveModification = new MoveModification(0 , d); // TODO CRITICAL this way it always start the turning in one direction even if turning to the other direction would be much faster
             }
         }
 //        double targetAngle = GeometryUtility.getDegree(currentPosition, targetPosition);

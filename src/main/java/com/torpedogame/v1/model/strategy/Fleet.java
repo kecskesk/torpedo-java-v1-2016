@@ -13,22 +13,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class represents a collection of ships that are supposed to move in formation.
+ * This class represents a collection of ships that are supposed to move in submarinesRelativePositions.
  *
  * Created by Dombi Soma on 19/11/2016.
  */
 public class Fleet {
     // This map stores the submarines with their relative position to the FLAGSHIP
-    private Map<Integer, Coordinate> formation = new HashMap<>();
+    private Map<Integer, Coordinate> submarinesRelativePositions = new HashMap<>();
 
     // The current movement target of the fleet
-    // The fleet will move towards this coordinate in formation
+    // The fleet will move towards this coordinate in submarinesRelativePositions
     private Coordinate target;
 
     // The list of the fleet members
     // SHOULD BE SET BY EVERY ROUND
     // ***The first element of the list is considered as the FLAGSHIP,
-    // ***which is a pivot point for all the other ships in formation movement.
+    // ***which is a pivot point for all the other ships in submarinesRelativePositions movement.
     private List<Submarine> submarines;
 
     // The list of the visible entities
@@ -37,11 +37,12 @@ public class Fleet {
 
     private int fleetSpeed = 10;
 
+    private String formation;
+
     private final Integer TARGET_REACHING_THRESHOLD = 50;
     /**
-     * This function ensures the fleet to keep formation.
-     * TODO implement move in formation logic here
-     * @return The MoveModification for each registered ship to stay in formation
+     * This function ensures the fleet to keep submarinesRelativePositions.
+     * @return The MoveModification for each registered ship to stay in submarinesRelativePositions
      */
     public Map<Integer, MoveModification> getMoveModifications() {
         Map<Integer, MoveModification> moveModifications = new HashMap<>();
@@ -59,8 +60,8 @@ public class Fleet {
                     // Other MoveModification
                     Coordinate relativePosition = new Coordinate();
                     // Calculate target
-                    if (formation.containsKey(submarine.getId())) {
-                        relativePosition = formation.get(submarine.getId());
+                    if (submarinesRelativePositions.containsKey(submarine.getId())) {
+                        relativePosition = submarinesRelativePositions.get(submarine.getId());
                     }
                     Coordinate flagshipCoordinate = submarines.get(0).getPosition();
                     Coordinate targetCoordinate = new Coordinate(flagshipCoordinate.x + relativePosition.x, flagshipCoordinate.y + relativePosition.y);
@@ -104,7 +105,7 @@ public class Fleet {
     public boolean hasReachedTarget() {
         if (target == null) return false;
         for(Submarine sub : submarines) {
-            Coordinate relPos = formation.get(sub.getId());
+            Coordinate relPos = submarinesRelativePositions.get(sub.getId());
             Coordinate targetPos = new Coordinate(target.x + relPos.x, target.y + relPos.y);
             if(sub.getPosition().distance(targetPos) > TARGET_REACHING_THRESHOLD) return false;
         }
@@ -116,7 +117,7 @@ public class Fleet {
      * and adds it to the fleet if previously was not present.
      */
     public void setSubmarinesRelativePosition(Integer submarineId, Coordinate relativePosition) {
-        this.formation.put(submarineId, relativePosition);
+        this.submarinesRelativePositions.put(submarineId, relativePosition);
     }
 
     /**
