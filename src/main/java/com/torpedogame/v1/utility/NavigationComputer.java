@@ -3,7 +3,6 @@ package com.torpedogame.v1.utility;
 import com.torpedogame.v1.model.utility.MoveModification;
 import com.vividsolutions.jts.algorithm.Angle;
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.util.GeometryMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,41 +69,56 @@ public class NavigationComputer {
      * @return The speed and turn value that the ship should modify its speed vector with.
      */
     public static MoveModification getMoveModification(Coordinate currentPosition, Coordinate targetPosition, double currentVelocity, double currentAngle){
-        Coordinate positionWithoutMovementModification = getExpectedPosition(currentPosition, currentVelocity, currentAngle);
-        double minimumDistance = 10000; // targetPosition.distance(positionWithoutMovementModification);
+        double minimumDistance = 10000;
         MoveModification minimumMoveModification = new MoveModification(0,0);
 
-        for (double d = -MAX_STEERING_PER_ROUND; d <= MAX_STEERING_PER_ROUND; d += 2*MAX_STEERING_PER_ROUND/40) {
-            double tempAngle = currentAngle + d;
-            // There is a slower speed level
-            if (currentVelocity > MIN_SPEED) {
-                Coordinate slowerPosition = getExpectedPosition(currentPosition, currentVelocity - MAX_ACCELERATION_PER_ROUND, tempAngle);
-                double slowerDistance = targetPosition.distance(slowerPosition);
+        if (currentVelocity < 1) {
+            // We're basically standing still
+            // Only the angle should determine the move modification
+            Coordinate expectedPosition = getExpectedPosition(currentPosition, currentVelocity+1, currentAngle);
+            double angleModification = getAngleModification(expectedPosition, currentPosition, targetPosition);
 
-                if (slowerDistance < minimumDistance) {
-                    minimumDistance = slowerDistance;
-                    minimumMoveModification = new MoveModification(-MAX_ACCELERATION_PER_ROUND , d); // Since d is the
-                }
+            // Check if target is within steering range
+            if (Math.abs(angleModification) < MAX_STEERING_PER_ROUND) {
+                minimumMoveModification = new MoveModification(0, angleModification);
+            } else if (angleModification < 0) { // Target is outside steering range and we have to turn clockwise.
+                minimumMoveModification = new MoveModification(0, -MAX_STEERING_PER_ROUND);
+            } else { // Target is outside steering range and we have to turn counterclockwise.
+                minimumMoveModification = new MoveModification(0, MAX_STEERING_PER_ROUND);
             }
+        } else {
+            for (double d = -MAX_STEERING_PER_ROUND; d <= MAX_STEERING_PER_ROUND; d += 2 * MAX_STEERING_PER_ROUND / 40) {
+                double tempAngle = currentAngle + d;
+                // Calculate expected positions for slower speeds
+                if (currentVelocity > MIN_SPEED) {
+                    Coordinate slowerPosition = getExpectedPosition(currentPosition, currentVelocity - MAX_ACCELERATION_PER_ROUND, tempAngle);
+                    double slowerDistance = targetPosition.distance(slowerPosition);
 
-            // There is a faster speed level
-            if (currentVelocity < MAX_SPEED) {
-                Coordinate fasterPosition = getExpectedPosition(currentPosition, currentVelocity + MAX_ACCELERATION_PER_ROUND, tempAngle);
-                double fasterDistance = targetPosition.distance(fasterPosition);
-
-                if (fasterDistance < minimumDistance) {
-                    minimumDistance = fasterDistance;
-                    minimumMoveModification = new MoveModification(MAX_ACCELERATION_PER_ROUND , d);
+                    if (slowerDistance < minimumDistance) {
+                        minimumDistance = slowerDistance;
+                        minimumMoveModification = new MoveModification(-MAX_ACCELERATION_PER_ROUND, d); // Since d is the
+                    }
                 }
-            }
 
-            // Calculate the expected position, with no speed change
-            Coordinate expectedPosition = getExpectedPosition(currentPosition, currentVelocity , tempAngle);
-            double expectedDistance = targetPosition.distance(expectedPosition);
+                // Calculate expected positions for faster speeds
+                if (currentVelocity < MAX_SPEED) {
+                    Coordinate fasterPosition = getExpectedPosition(currentPosition, currentVelocity + MAX_ACCELERATION_PER_ROUND, tempAngle);
+                    double fasterDistance = targetPosition.distance(fasterPosition);
 
-            if (expectedDistance < minimumDistance) {
-                minimumDistance = expectedDistance;
-                minimumMoveModification = new MoveModification(0 , d); // TODO CRITICAL this way it always start the turning in one direction even if turning to the other direction would be much faster
+                    if (fasterDistance < minimumDistance) {
+                        minimumDistance = fasterDistance;
+                        minimumMoveModification = new MoveModification(MAX_ACCELERATION_PER_ROUND, d);
+                    }
+                }
+
+                // Calculate the expected position with no speed change
+                Coordinate expectedPosition = getExpectedPosition(currentPosition, currentVelocity, tempAngle);
+                double expectedDistance = targetPosition.distance(expectedPosition);
+
+                if (expectedDistance < minimumDistance) {
+                    minimumDistance = expectedDistance;
+                    minimumMoveModification = new MoveModification(0, d);
+                }
             }
         }
 //        double targetAngle = GeometryUtility.getDegree(currentPosition, targetPosition);
@@ -183,5 +197,17 @@ public class NavigationComputer {
 
     public static MoveModification getSlowerMoveModification() {
         return new MoveModification( - MAX_ACCELERATION_PER_ROUND,0);
+    }
+
+    /**
+     * Return the angle modification based on the current position vector and the target vector
+     * @param expectedPosition
+     * @param currentPosition
+     * @param targetPosition
+     * @return positive if the modification is counterclockwise otherwise negative.
+     */
+    public static double getAngleModification(Coordinate expectedPosition, Coordinate currentPosition, Coordinate targetPosition) {
+        double orientedAngle = Angle.angleBetweenOriented(expectedPosition, currentPosition, targetPosition);
+        return Angle.toDegrees(orientedAngle);
     }
 }

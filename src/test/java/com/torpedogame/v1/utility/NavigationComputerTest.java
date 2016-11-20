@@ -217,5 +217,44 @@ public class NavigationComputerTest  {
         NavigationComputer.setIslandSize(10);
     }
 
+    @Test
+    public void testAngleModificationTargetBelow90() {
+        Coordinate expectedPosition = new Coordinate(115, 115);
+        Coordinate currentPosition = new Coordinate(100, 100);
+        Coordinate targetPosition = new Coordinate(105, 115);
+        double angleMod = NavigationComputer.getAngleModification(expectedPosition, currentPosition, targetPosition);
+        assertTrue(angleMod < 90);
+        assertTrue(angleMod > 0);
+    }
+
+    @Test
+    public void testAngleModificationTargetAbove90Below180() {
+        Coordinate expectedPosition = new Coordinate(115, 115);
+        Coordinate currentPosition = new Coordinate(100, 100);
+        Coordinate targetPosition = new Coordinate(50, 105);
+        double angleMod = NavigationComputer.getAngleModification(expectedPosition, currentPosition, targetPosition);
+        assertTrue(angleMod > 45);
+        assertTrue(angleMod < 135);
+    }
+
+    @Test
+    public void testAngleModificationTargetAbove180Below270() {
+        Coordinate expectedPosition = new Coordinate(115, 115);
+        Coordinate currentPosition = new Coordinate(100, 100);
+        Coordinate targetPosition = new Coordinate(90, 50);
+        double angleMod = NavigationComputer.getAngleModification(expectedPosition, currentPosition, targetPosition);
+        assertTrue(angleMod < -135);
+        assertTrue(angleMod > -225);
+    }
+
+    @Test
+    public void testAngleModificationTargetAbove270() {
+        Coordinate expectedPosition = new Coordinate(115, 115);
+        Coordinate currentPosition = new Coordinate(100, 100);
+        Coordinate targetPosition = new Coordinate(110, 50);
+        double angleMod = NavigationComputer.getAngleModification(expectedPosition, currentPosition, targetPosition);
+        assertTrue(angleMod < -45);
+        assertTrue(angleMod > -135);
+    }
 
 }
