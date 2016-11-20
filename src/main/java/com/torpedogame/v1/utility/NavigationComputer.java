@@ -70,60 +70,49 @@ public class NavigationComputer {
      */
     public static MoveModification getMoveModification(Coordinate currentPosition, Coordinate targetPosition, double currentVelocity, double currentAngle){
         double minimumDistance = 10000;
-        MoveModification minimumMoveModification = new MoveModification(0,0);
 
         if (currentVelocity < 1) {
-            // We're basically standing still
-            // Only the angle should determine the move modification
-            Coordinate expectedPosition = getExpectedPosition(currentPosition, currentVelocity+1, currentAngle);
-            double angleModification = getAngleModification(expectedPosition, currentPosition, targetPosition);
+            currentVelocity+= 1;
+        }
 
-            // Check if target is within steering range
-            if (Math.abs(angleModification) < MAX_STEERING_PER_ROUND) {
-                minimumMoveModification = new MoveModification(0, angleModification);
-            } else if (angleModification < 0) { // Target is outside steering range and we have to turn clockwise.
-                minimumMoveModification = new MoveModification(0, -MAX_STEERING_PER_ROUND);
-            } else { // Target is outside steering range and we have to turn counterclockwise.
-                minimumMoveModification = new MoveModification(0, MAX_STEERING_PER_ROUND);
-            }
-        } else {
-            for (double d = -MAX_STEERING_PER_ROUND; d <= MAX_STEERING_PER_ROUND; d += 2 * MAX_STEERING_PER_ROUND / 40) {
-                double tempAngle = currentAngle + d;
-                // Calculate expected positions for slower speeds
-                if (currentVelocity > MIN_SPEED) {
-                    Coordinate slowerPosition = getExpectedPosition(currentPosition, currentVelocity - MAX_ACCELERATION_PER_ROUND, tempAngle);
-                    double slowerDistance = targetPosition.distance(slowerPosition);
+        Coordinate expectedPosition = getExpectedPosition(currentPosition, currentVelocity, currentAngle);
+        double optimalAngleModification = getAngleModification(expectedPosition, currentPosition, targetPosition);
+        double possibleAngleModification;
 
-                    if (slowerDistance < minimumDistance) {
-                        minimumDistance = slowerDistance;
-                        minimumMoveModification = new MoveModification(-MAX_ACCELERATION_PER_ROUND, d); // Since d is the
-                    }
-                }
+        // Check if target is within steering range
+        if (Math.abs(optimalAngleModification) < MAX_STEERING_PER_ROUND) {
+            possibleAngleModification = optimalAngleModification;
+        } else if (optimalAngleModification < 0) { // Target is outside steering range and we have to turn clockwise.
+            possibleAngleModification = -MAX_STEERING_PER_ROUND;
+        } else { // Target is outside steering range and we have to turn counterclockwise.
+            possibleAngleModification = MAX_STEERING_PER_ROUND;
+        }
 
-                // Calculate expected positions for faster speeds
-                if (currentVelocity < MAX_SPEED) {
-                    Coordinate fasterPosition = getExpectedPosition(currentPosition, currentVelocity + MAX_ACCELERATION_PER_ROUND, tempAngle);
-                    double fasterDistance = targetPosition.distance(fasterPosition);
+        double speedModification = 0;
+        // Calculate the expected position with no speed change
+        double noChangeDistance = getDistance(currentPosition, currentVelocity, possibleAngleModification, targetPosition);
+        if (noChangeDistance < minimumDistance) {
+            speedModification = 0;
+        }
 
-                    if (fasterDistance < minimumDistance) {
-                        minimumDistance = fasterDistance;
-                        minimumMoveModification = new MoveModification(MAX_ACCELERATION_PER_ROUND, d);
-                    }
-                }
-
-                // Calculate the expected position with no speed change
-                Coordinate expectedPosition = getExpectedPosition(currentPosition, currentVelocity, tempAngle);
-                double expectedDistance = targetPosition.distance(expectedPosition);
-
-                if (expectedDistance < minimumDistance) {
-                    minimumDistance = expectedDistance;
-                    minimumMoveModification = new MoveModification(0, d);
-                }
+        // Calculate expected positions for slower speeds
+        if (currentVelocity > MIN_SPEED) {
+            double slowerDistance = getDistance(currentPosition, currentVelocity - MAX_ACCELERATION_PER_ROUND, possibleAngleModification, targetPosition);
+            if (slowerDistance < minimumDistance) {
+                minimumDistance = slowerDistance;
+                speedModification = -MAX_ACCELERATION_PER_ROUND;
             }
         }
-//        double targetAngle = GeometryUtility.getDegree(currentPosition, targetPosition);
-//        if (currentVelocity == 0 && GeometryUtility.sumDegrees(currentAngle, -targetAngle) > )
-        return minimumMoveModification;
+
+        // Calculate expected positions for faster speeds
+        if (currentVelocity < MAX_SPEED) {
+            double fasterDistance = getDistance(currentPosition, currentVelocity + MAX_ACCELERATION_PER_ROUND, possibleAngleModification, targetPosition);
+            if (fasterDistance < minimumDistance) {
+                speedModification = MAX_ACCELERATION_PER_ROUND;
+            }
+        }
+
+        return new MoveModification(speedModification, possibleAngleModification);
     }
 
     /**
@@ -209,5 +198,10 @@ public class NavigationComputer {
     public static double getAngleModification(Coordinate expectedPosition, Coordinate currentPosition, Coordinate targetPosition) {
         double orientedAngle = Angle.angleBetweenOriented(expectedPosition, currentPosition, targetPosition);
         return Angle.toDegrees(orientedAngle);
+    }
+
+    private static double getDistance(Coordinate currentPos, double velocity, double angle, Coordinate targetPos) {
+       Coordinate fasterPosition = getExpectedPosition(currentPos, velocity, angle);
+       return targetPos.distance(fasterPosition);
     }
 }
