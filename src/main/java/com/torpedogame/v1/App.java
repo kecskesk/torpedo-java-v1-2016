@@ -81,7 +81,7 @@ public class App extends TimerTask
             NavigationComputer.setMaxSpeed(mapConfiguration.getMaxSpeed());
             // MinSpeed is not originated from the GameInfo, 0 was measured by hand.
             // By increasing this, it may be used to avoid slowing down in high (e.g. 180) degree turns.
-            NavigationComputer.setMinSpeed(mapConfiguration.getMaxAccelerationPerRound()); //(2 * mapConfiguration.getMaxAccelerationPerRound());
+            NavigationComputer.setMinSpeed(0);//(mapConfiguration.getMaxAccelerationPerRound()); //(2 * mapConfiguration.getMaxAccelerationPerRound());
 
             // Load map into NavComp
             NavigationComputer.setHeight(mapConfiguration.getHeight());
@@ -89,6 +89,7 @@ public class App extends TimerTask
             NavigationComputer.setIslandPositions(mapConfiguration.getIslandPositions());
             NavigationComputer.setIslandSize(mapConfiguration.getIslandSize());
             NavigationComputer.setSonarRange(mapConfiguration.getSonarRange());
+            NavigationComputer.setDangerZoneThreshold(100);
 
             ShootingComputer.setTorpedoRange(mapConfiguration.getTorpedoRange());
             ShootingComputer.setTorpedoSpeed(mapConfiguration.getTorpedoSpeed());
@@ -131,15 +132,24 @@ public class App extends TimerTask
             sparkServer.clearMoveRequest();
         }
 
+        if(!fleet.hasTarget()) {
+            fleet.setTarget(new Coordinate(900, 400));
+        }
 
         if (fleet.hasReachedTarget()) {
             fleet.setTarget(null);
         }
 
+
+
         // Gather sonar information for fleet
         List<Entity> visibleEntities = new ArrayList<>();
         for (Submarine submarine : submarineList) {
             // TODO Extend sonars somehow for fleet
+//            if (currentGame.getRound() != 0 && (currentGame.getRound() % mapConfiguration.getExtendedSonarCooldown() == 0)) {
+//                System.out.println("Sonar extended!");
+//                gameEngine.extendSonar(selectedGameId, submarine.getId());
+//            }
             SonarResponse sonarResponse = gameEngine.sonar(selectedGameId, submarine.getId());
             List<Entity> entityList = sonarResponse.getEntities();
             if (entityList == null) {
@@ -151,8 +161,11 @@ public class App extends TimerTask
         fleet.setVisibleEntities(visibleEntities);
 
         // Move the fleet
+        if (fleet.isInDangerZone()) {
+
+        }
         Map<Integer, MoveModification> moveModifications = fleet.getMoveModifications();
-        for (Integer shipId: moveModifications.keySet()) {
+        for (Integer shipId : moveModifications.keySet()) {
             MoveModification moveModification = moveModifications.get(shipId);
             gameEngine.move(selectedGameId, shipId, moveModification.getSpeed(), moveModification.getTurn());
         }
@@ -166,83 +179,9 @@ public class App extends TimerTask
 
         fleet.printFleetInfo();
 
-
-
-        /*
-        // Give orders to each submarine
-        for (Submarine submarine : submarineList) {
-            // Use extended sonar whenever we can
-            if (currentGame.getRound() != 0 && (currentGame.getRound() % mapConfiguration.getExtendedSonarCooldown() == 0)) {
-                System.out.println("Sonar extended!");
-                gameEngine.extendSonar(selectedGameId, submarine.getId());
-            }
-
-            Coordinate target = null;
-            if (targetStore.containsKey(submarine.getId())) {
-                target = targetStore.get(submarine.getId());
-            }
-
-            GuiMoveRequest moveRequest = sparkServer.getGuiMoveRequest();
-            if (moveRequest != null && moveRequest.getSubmarineIds() != null && moveRequest.getSubmarineIds().contains(submarine.getId())) {
-                target = new Coordinate(moveRequest.getX(), moveRequest.getY());
-                sparkServer.clearMoveRequest();
-            } else {
-                boolean submarineShouldBeOnLeftSide = (submarine.getId() % 2 == 0);
-                target = NavigationComputer.getNextTarget(submarine.getPosition(), target, submarineShouldBeOnLeftSide);
-            }
-
-            targetStore.put(submarine.getId(), target);
-
-            printSubmarineInformation(submarine, target);
-
-            // Calculate move modification value and move the submarine
-            MoveModification moveModification = NavigationComputer.getMoveModification(submarine.getPosition(), target, submarine.getVelocity(), submarine.getAngle());
-            gameEngine.move(selectedGameId, submarine.getId(), moveModification.getSpeed(), moveModification.getTurn());
-
-            // Get the sonar information
-            SonarResponse sonarResponse = gameEngine.sonar(selectedGameId, submarine.getId());
-            List<Entity> entityList = sonarResponse.getEntities();
-
-            if (entityList == null) {
-                System.out.println("Entity list is null, continue with next submarine.");
-                continue;
-            }
-
-            guiEntities.addAll(entityList);
-
-            int cooldownLeft = cooldownStore.get(submarine.getId());
-            cooldownLeft = cooldownLeft > 0 ? cooldownLeft - 1 : 0;
-            cooldownStore.put(submarine.getId(), cooldownLeft);
-
-            System.out.println("visible entities:");
-
-            // Loop through each entity the sonar is seeing.
-            for (Entity e : entityList) {
-                printEntityInformation(e);
-
-                if(e.getOwner().getName().equals("BOT")) { // && IT IS A SHIP!
-                    if (cooldownLeft == 0) {
-                        // Red Alert
-                        // TODO Check for torpedo cooldown!
-                        try {
-                            double shootingAngle = ShootingComputer.getShootingAngle(submarine.getPosition(), e.getPosition(), e.getVelocity(), e.getAngle());
-                            System.out.println("Firing!");
-                            gameEngine.shoot(selectedGameId, submarine.getId(), shootingAngle);
-                            cooldownStore.put(submarine.getId(), mapConfiguration.getTorpedoCooldown());
-                        } catch (Exception ise) {
-                            System.out.println(ise.getMessage());
-                        }
-                    } else {
-                        System.out.println("Reload is complete in " + cooldownLeft + " rounds.");
-                    }
-                }
-            }
-
-            System.out.println("---------------------------------------------------------------------------------");
-            */
-            guiInfoMessage.setEntities(visibleEntities);
-            guiInfoMessage.setSubmarines(submarineList);
-            guiInfoMessage.setGame(gameInfoResponse.getGame());
+        guiInfoMessage.setEntities(visibleEntities);
+        guiInfoMessage.setSubmarines(submarineList);
+        guiInfoMessage.setGame(gameInfoResponse.getGame());
 
         // Update spark server with new informations
         sparkServer.updateMessage(guiInfoMessage);

@@ -47,14 +47,15 @@ public class Fleet {
     public Map<Integer, MoveModification> getMoveModifications() {
         Map<Integer, MoveModification> moveModifications = new HashMap<>();
         // TODO Check for dangerous torpedoes
-
+        // TODO Add rotation of the formation
         // For each registered ship
         for (Submarine submarine : submarines) {
             if (target != null) {
                 if (submarines.indexOf(submarine) == 0) {
                     // FLAGSHIP MoveModification
                     MoveModification flagshipMM = NavigationComputer.getMoveModification(submarine.getPosition(), target, submarine.getVelocity(), submarine.getAngle());
-                    if (submarine.getVelocity() > fleetSpeed)flagshipMM.setSpeed(0);
+//                    if (submarine.getVelocity() + flagshipMM.getSpeed() > fleetSpeed) flagshipMM.setSpeed(0);
+                    System.out.println("QWER " + flagshipMM);
                     moveModifications.put(submarine.getId(), flagshipMM);
                 } else {
                     // Other MoveModification
@@ -65,7 +66,9 @@ public class Fleet {
                     }
                     Coordinate flagshipCoordinate = submarines.get(0).getPosition();
                     Coordinate targetCoordinate = new Coordinate(flagshipCoordinate.x + relativePosition.x, flagshipCoordinate.y + relativePosition.y);
-                    moveModifications.put(submarine.getId(), NavigationComputer.getMoveModification(submarine.getPosition(), targetCoordinate, submarine.getVelocity(), submarine.getAngle()));
+                    MoveModification asd = NavigationComputer.getMoveModification(submarine.getPosition(), targetCoordinate, submarine.getVelocity(), submarine.getAngle());
+                    System.out.println("QWER " + asd);
+                    moveModifications.put(submarine.getId(),asd);
                 }
             } else if (submarine.getVelocity() > 0) {
                 moveModifications.put(submarine.getId(), NavigationComputer.getSlowerMoveModification());
@@ -79,6 +82,7 @@ public class Fleet {
      * @return
      */
     public Map<Integer, Double> getShootingAngles() {
+        // TODO avoid friendly fire
         Map<Integer, Double> shootingAngles = new HashMap<>();
         for(Submarine submarine : submarines){
             if(submarine.getTorpedoCooldown() == 0) {
@@ -127,7 +131,7 @@ public class Fleet {
         // Set relative position of submarines
         List<Coordinate> coordinates = new ArrayList<>();
         coordinates.add(new Coordinate(0, 0));
-        coordinates.add(new Coordinate(100, 100));
+        coordinates.add(new Coordinate(100, -100));
         coordinates.add(new Coordinate(-100, 100));
 
 
@@ -160,6 +164,22 @@ public class Fleet {
         for(Submarine s: submarines) printSubmarineInformation(s);
     }
 
+    public Coordinate getFlagshipPosition() {
+        return submarines.get(0).getPosition();
+    }
+
+    public boolean hasTarget () {
+        return target != null;
+    }
+
+    public boolean isInDangerZone() {
+        for(Submarine submarine: submarines){
+            if(NavigationComputer.isInDangerZone(submarine.getPosition())) {
+                return true;
+            }
+        }
+        return false;
+    }
     private void printSubmarineInformation(Submarine submarine) {
         System.out.println("SHIP " + submarine.getId());
         System.out.println("position: " + submarine.getPosition());

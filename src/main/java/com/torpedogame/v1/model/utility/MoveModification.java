@@ -27,4 +27,9 @@ public class MoveModification {
     public void setTurn(double turn) {
         this.turn = turn;
     }
+
+    @Override
+    public String toString () {
+      return this.speed + " | " + this.getTurn();
+    }
 }

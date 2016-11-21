@@ -23,6 +23,8 @@ public class NavigationComputer {
     private static double MIN_SPEED;
     private static double SONAR_RANGE;
 
+    private static double DANGER_ZONE_THRESHOLD;
+
     public static void setWidth(int width) {
         NavigationComputer.width = width;
     }
@@ -58,6 +60,9 @@ public class NavigationComputer {
     public static void setSonarRange(double sonarRange) {
         NavigationComputer.SONAR_RANGE = sonarRange;
     }
+    public static void setDangerZoneThreshold(double dangerZoneThreshold) {
+        NavigationComputer.DANGER_ZONE_THRESHOLD = dangerZoneThreshold;
+    }
 
     /**
      * This function returns the recommended speed vector modification of the ship
@@ -71,8 +76,8 @@ public class NavigationComputer {
     public static MoveModification getMoveModification(Coordinate currentPosition, Coordinate targetPosition, double currentVelocity, double currentAngle){
         double minimumDistance = 10000;
 
-        if (currentVelocity < 1) {
-            currentVelocity+= 1;
+        if (currentVelocity < MIN_SPEED) {
+            currentVelocity = MIN_SPEED + 1;
         }
 
         Coordinate expectedPosition = getExpectedPosition(currentPosition, currentVelocity, currentAngle);
@@ -92,6 +97,7 @@ public class NavigationComputer {
         // Calculate the expected position with no speed change
         double noChangeDistance = getDistance(currentPosition, currentVelocity, possibleAngleModification, targetPosition);
         if (noChangeDistance < minimumDistance) {
+            minimumDistance = noChangeDistance;
             speedModification = 0;
         }
 
@@ -203,5 +209,14 @@ public class NavigationComputer {
     private static double getDistance(Coordinate currentPos, double velocity, double angle, Coordinate targetPos) {
        Coordinate fasterPosition = getExpectedPosition(currentPos, velocity, angle);
        return targetPos.distance(fasterPosition);
+    }
+
+    public static boolean isInDangerZone(Coordinate currentPos) {
+        for(Coordinate island : islandPositions) {
+            if (island.distance(currentPos) < DANGER_ZONE_THRESHOLD + islandSize) {
+                return true;
+            }
+        }
+        return false;
     }
 }
