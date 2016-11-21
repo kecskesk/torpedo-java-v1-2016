@@ -85,7 +85,7 @@ public class App extends TimerTask
             NavigationComputer.setMaxSpeed(mapConfiguration.getMaxSpeed());
             // MinSpeed is not originated from the GameInfo, 0 was measured by hand.
             // By increasing this, it may be used to avoid slowing down in high (e.g. 180) degree turns.
-            NavigationComputer.setMinSpeed(mapConfiguration.getMaxAccelerationPerRound());
+            NavigationComputer.setMinSpeed(0);//(mapConfiguration.getMaxAccelerationPerRound());
 
             // Load map into NavComp
             NavigationComputer.setHeight(mapConfiguration.getHeight());
@@ -94,6 +94,9 @@ public class App extends TimerTask
             NavigationComputer.setIslandSize(mapConfiguration.getIslandSize());
             NavigationComputer.setSonarRange(mapConfiguration.getSonarRange());
             NavigationComputer.setDangerZoneThreshold(100);
+
+            NavigationComputer.initializePatrolCoordinates();
+
 
             ShootingComputer.setTorpedoRange(mapConfiguration.getTorpedoRange());
             ShootingComputer.setTorpedoSpeed(mapConfiguration.getTorpedoSpeed());
@@ -118,6 +121,8 @@ public class App extends TimerTask
         GameInfoResponse.Game currentGame = gameInfoResponse.getGame();
         MapConfiguration mapConfiguration = currentGame.getMapConfiguration();
 
+
+
         System.out.println("####################  ROUND " + currentGame.getRound() + "  ####################");
         System.out.println("SCORE : " + currentGame.getScores().getScores());
 
@@ -130,6 +135,10 @@ public class App extends TimerTask
         }
         fleet.setSubmarines(submarineList);
 
+        if(fleet.getPatrolClockwise() == null) { // In 1st round decide which direction to patrol
+            fleet.setPatrolClockwise(NavigationComputer.patrolClockwise(fleet.getFlagshipPosition()));
+        }
+
         // Set new target if needed
         GuiMoveRequest moveRequest = sparkServer.getGuiMoveRequest();
         // first check if gui move request is sent.
@@ -139,7 +148,7 @@ public class App extends TimerTask
         }
 
         if(!fleet.hasTarget()) {
-            fleet.setTarget(new Coordinate(900, 400));
+            fleet.setTarget(NavigationComputer.getNextPatrolTarget(fleet.getFlagshipPosition(), fleet.getPatrolClockwise()));
         }
 
         // Gather sonar information for fleet

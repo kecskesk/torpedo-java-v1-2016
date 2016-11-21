@@ -48,6 +48,16 @@ public class Fleet {
 
     private final Integer TARGET_REACHING_THRESHOLD = 50;
 
+    private Boolean patrolClockwise;
+
+    public Boolean getPatrolClockwise() {
+        return patrolClockwise;
+    }
+
+    public void setPatrolClockwise(Boolean patrolClockwise) {
+        this.patrolClockwise = patrolClockwise;
+    }
+
     public Map<Integer, MoveModification> getMoveModifications() {
 
         if (hasReachedTarget(intermediateTarget)) {

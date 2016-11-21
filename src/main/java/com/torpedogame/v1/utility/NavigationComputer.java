@@ -29,6 +29,9 @@ public class NavigationComputer {
 
     private static double DANGER_ZONE_THRESHOLD;
 
+    private static List<Coordinate> PATROL_COORDINATES;
+
+
     public static void setWidth(int width) {
         NavigationComputer.width = width;
     }
@@ -66,6 +69,9 @@ public class NavigationComputer {
     }
     public static void setDangerZoneThreshold(double dangerZoneThreshold) {
         NavigationComputer.DANGER_ZONE_THRESHOLD = dangerZoneThreshold;
+    }
+    public static void setPatrolCoordinates(List<Coordinate> patrolCoordinates) {
+        NavigationComputer.PATROL_COORDINATES = patrolCoordinates;
     }
 
     /**
@@ -265,5 +271,68 @@ public class NavigationComputer {
         GeometricShapeFactory mapFactory = new GeometricShapeFactory();
         mapFactory.setEnvelope(map);
         return mapFactory.createRectangle();
+    }
+
+    //  2 | 1
+    // -------
+    //  3 | 4
+    public static Coordinate getNextPatrolTarget (Coordinate startingPosition, boolean patrolClockwise) {
+        int quarter = getQuarter(startingPosition);
+        int index = quarter - 1;
+        if (patrolClockwise) {
+            if (quarter == 1) {
+                return PATROL_COORDINATES.get(3);
+            } else {
+                return PATROL_COORDINATES.get(quarter - 2); // 2 because of indexing start from 0, target for quarter III is at position 2
+            }
+        } else {
+            if (quarter == 4) {
+                return PATROL_COORDINATES.get(0);
+            } else {
+                return PATROL_COORDINATES.get(quarter);
+            }
+        }
+    }
+
+    //  2 | 1
+    // -------
+    //  3 | 4
+    public static boolean patrolClockwise(Coordinate startingPosition) {
+        int quarter = getQuarter(startingPosition);
+        if (quarter == 1 || quarter == 3) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    // Returns the number of the quarter where the given coordinate takes place
+    //  2 | 1
+    // -------
+    //  3 | 4
+    private static int getQuarter(Coordinate position) {
+        if (position.x > width / 2 && position.y > height / 2)  { // RIGHT UP
+            return 1;
+        } else if (position.x < width / 2 && position.y > height / 2) {  // LEFT UP
+            return 2;
+        } else  if (position.x < width / 2 && position.y < height / 2) { // LEFT DOWN
+            return 3;
+        } else {
+            return 4; // RIGHT DOWN
+        }
+    }
+
+    //  2 | 1
+    // -------
+    //  3 | 4
+    public static void initializePatrolCoordinates() {
+        PATROL_COORDINATES = new ArrayList<>();
+
+        // Order is IMPORTANT
+        PATROL_COORDINATES.add(new Coordinate(width - 200, height - 200));  // I quarter
+        PATROL_COORDINATES.add(new Coordinate(200, height - 200));          // II quarter
+        PATROL_COORDINATES.add(new Coordinate(200, 200));                   // III quarter
+        PATROL_COORDINATES.add(new Coordinate(width - 200, 200));           // IV quarter
+
     }
 }
