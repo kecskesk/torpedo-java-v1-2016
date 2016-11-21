@@ -82,7 +82,7 @@ public class App extends TimerTask
             NavigationComputer.setMaxSpeed(mapConfiguration.getMaxSpeed());
             // MinSpeed is not originated from the GameInfo, 0 was measured by hand.
             // By increasing this, it may be used to avoid slowing down in high (e.g. 180) degree turns.
-            NavigationComputer.setMinSpeed(0);//(mapConfiguration.getMaxAccelerationPerRound()); //(2 * mapConfiguration.getMaxAccelerationPerRound());
+            NavigationComputer.setMinSpeed(mapConfiguration.getMaxAccelerationPerRound());
 
             // Load map into NavComp
             NavigationComputer.setHeight(mapConfiguration.getHeight());
@@ -137,12 +137,6 @@ public class App extends TimerTask
             fleet.setTarget(new Coordinate(900, 400));
         }
 
-        if (fleet.hasReachedTarget()) {
-            fleet.setTarget(null);
-        }
-
-
-
         // Gather sonar information for fleet
         List<Entity> visibleEntities = new ArrayList<>();
         for (Submarine submarine : submarineList) {
@@ -160,11 +154,6 @@ public class App extends TimerTask
             }
         }
         fleet.setVisibleEntities(visibleEntities);
-
-        // Move the fleet
-        if (fleet.isInDangerZone()) {
-
-        }
         Map<Integer, MoveModification> moveModifications = fleet.getMoveModifications();
         for (Integer shipId : moveModifications.keySet()) {
             MoveModification moveModification = moveModifications.get(shipId);
@@ -188,8 +177,6 @@ public class App extends TimerTask
         // Update spark server with new informations
         sparkServer.updateMessage(guiInfoMessage);
     }
-
-
 
     private void printEntityInformation(Entity e) {
         System.out.println("\t" + e.getType() + " " + e.getId());
