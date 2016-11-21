@@ -32,7 +32,10 @@ public class GameListResponse extends Response {
         String response = getCode() + " " + getMessage();
         List<CharSequence> gamecodes = games.stream()
                 .map(game -> game.toString()).collect(Collectors.toList());
-        String games = "" + String.join(", ", gamecodes);
-        return "Games run by us: " + response + " " + games;
+        String gamesString = "" + String.join(", ", gamecodes);
+        if (games.isEmpty()) {
+            gamesString = "None.";
+        }
+        return "Our yet not connected games: " + response + " " + gamesString;
     }
 }

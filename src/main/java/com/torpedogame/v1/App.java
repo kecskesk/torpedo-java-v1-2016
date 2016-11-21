@@ -13,8 +13,7 @@ import com.torpedogame.v1.utility.ISonarComputer;
 
 import com.torpedogame.v1.utility.NavigationComputer;
 import com.torpedogame.v1.utility.ShootingComputer;
-import com.torpedogame.v1.utility.SimpleSonarComputer;
-import com.torpedogame.v1.utility.SonarComputer;
+import com.torpedogame.v1.utility.ImprovedSonarComputer;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import java.util.ArrayList;
@@ -47,7 +46,7 @@ public class App extends TimerTask
 
     public static void main( String[] args )
     {
-        sonarComputer = new SimpleSonarComputer();
+        sonarComputer = new ImprovedSonarComputer();
         gameEngine = new GameApiImpl();
         
         // SETTING GAME ENGINE URL FROM ARGUMENT LIST
@@ -104,6 +103,8 @@ public class App extends TimerTask
             // increase the second parameter of the schedule function.
             Timer timer = new Timer();
             timer.schedule(new App(), 0, mapConfiguration.getRoundLength());
+        } else {
+            System.out.println("No free gameslot, sorry, exiting.");
         }
     }
 
