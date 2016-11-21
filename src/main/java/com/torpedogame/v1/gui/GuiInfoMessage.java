@@ -15,7 +15,7 @@ public class GuiInfoMessage {
     private Game game;
     private List<Entity> entities;
     private List<Submarine> submarines;
-    private Map<Integer, Coordinate> targetStore;
+    private Coordinate target;
 
     public GuiInfoMessage() {
     }
@@ -44,11 +44,11 @@ public class GuiInfoMessage {
         this.entities = entities;
     }
 
-    public Map<Integer, Coordinate> getTargetStore() {
-        return targetStore;
+    public Coordinate getTarget() {
+        return target;
     }
 
-    public void setTargetStore(Map<Integer, Coordinate> targetStore) {
-        this.targetStore = targetStore;
+    public void setTarget(Coordinate target) {
+        this.target = target;
     }
 }

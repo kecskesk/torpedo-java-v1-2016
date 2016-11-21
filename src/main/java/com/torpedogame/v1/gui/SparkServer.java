@@ -12,8 +12,16 @@ import static spark.Spark.*;
  */
 public class SparkServer extends Thread {
 
+    public SparkServer(int width, int heigth) {
+        this.width = width;
+        this.heigth = heigth;
+    }    
+
     private GuiInfoMessage guiInfoMessage = new GuiInfoMessage();
     private GuiMoveRequest guiMoveRequest = null;
+    
+    private final int width;
+    private final int heigth;
 
     /**
      * Very simple REST endpoint
@@ -37,14 +45,22 @@ public class SparkServer extends Thread {
         post("/rest/move", (req, resp) -> {
             ObjectMapper mapper = new ObjectMapper();
             try {
-                guiMoveRequest = mapper.readValue(req.body(), GuiMoveRequest.class);
+                GuiMoveRequest tempRequest = mapper.readValue(req.body(), GuiMoveRequest.class);
+                
+                if (isOutOfMap(tempRequest)) {
+                    return "\"not ok\"";
+                } else {
+                    guiMoveRequest = mapper.readValue(req.body(), GuiMoveRequest.class);
+                    return  "\"ok\"";
+                }
+                
             } catch (Exception e) {
                 System.out.println(e.getMessage());
+                return "\"not ok\"";
             }
-            return "ok";
         });
 
-        options("rest/move", (req, resp) -> "ok");
+        options("rest/move", (req, resp) -> "\"ok\"");
     }
 
     /**
@@ -77,5 +93,17 @@ public class SparkServer extends Thread {
 
     public void clearMoveRequest() {
         guiMoveRequest = null;
+    }
+
+    private boolean isOutOfMap(GuiMoveRequest tempRequest) {
+        double tWidth = tempRequest.getX();
+        double tHeight = tempRequest.getY();
+        
+        if ((tWidth < 0 || tWidth > width) || (tHeight < 0 || tHeight > heigth)) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 }

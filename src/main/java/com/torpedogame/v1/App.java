@@ -37,15 +37,13 @@ public class App extends TimerTask
     // TODO maybe create a class for these stores and
     // initialize them in the main function
     private static GuiInfoMessage guiInfoMessage = new GuiInfoMessage();
-    private static final SparkServer sparkServer = new SparkServer();
+    private static SparkServer sparkServer;
     private static int selectedGameId = -1;
 
     private static Fleet fleet = new Fleet();
 
     public static void main( String[] args )
     {
-        sparkServer.start();
-        
         gameEngine = new GameApiImpl();
 
         // SETTING GAME ENGINE URL FROM ARGUMENT LIST
@@ -75,6 +73,9 @@ public class App extends TimerTask
             gameInfoResponse = gameEngine.gameInfo(selectedGameId);
             MapConfiguration mapConfiguration = gameInfoResponse.getGame().getMapConfiguration();
 
+            sparkServer = new SparkServer(mapConfiguration.getWidth(), mapConfiguration.getHeight());
+            sparkServer.start();
+            
             // Setup configuration
             NavigationComputer.setMaxSteeringPerRound(mapConfiguration.getMaxSteeringPerRound());
             NavigationComputer.setMaxAccelerationPerRound(mapConfiguration.getMaxAccelerationPerRound());
@@ -179,9 +180,10 @@ public class App extends TimerTask
 
         fleet.printFleetInfo();
 
-        guiInfoMessage.setEntities(visibleEntities);
-        guiInfoMessage.setSubmarines(submarineList);
-        guiInfoMessage.setGame(gameInfoResponse.getGame());
+            guiInfoMessage.setEntities(visibleEntities);
+            guiInfoMessage.setSubmarines(submarineList);
+            guiInfoMessage.setTarget(fleet.getTarget());
+            guiInfoMessage.setGame(gameInfoResponse.getGame());
 
         // Update spark server with new informations
         sparkServer.updateMessage(guiInfoMessage);
