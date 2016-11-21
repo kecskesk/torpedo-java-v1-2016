@@ -1,8 +1,12 @@
 package com.torpedogame.v1.utility;
 
+import com.torpedogame.v1.model.game_control.MapConfiguration;
 import com.torpedogame.v1.model.utility.MoveModification;
 import com.vividsolutions.jts.algorithm.Angle;
-import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.*;
+import com.vividsolutions.jts.operation.BoundaryOp;
+import com.vividsolutions.jts.operation.distance.DistanceOp;
+import com.vividsolutions.jts.util.GeometricShapeFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,50 +79,59 @@ public class NavigationComputer {
      */
     public static MoveModification getMoveModification(Coordinate currentPosition, Coordinate targetPosition, double currentVelocity, double currentAngle){
         double minimumDistance = 10000;
+        MoveModification minimumMoveModification = new MoveModification(0,0);
 
-        if (currentVelocity < MIN_SPEED) {
-            currentVelocity = MIN_SPEED + 1;
-        }
+        if (currentVelocity < 1) {
+            // We're basically standing still
+            // Only the angle should determine the move modification
+            Coordinate expectedPosition = getExpectedPosition(currentPosition, currentVelocity+1, currentAngle);
+            double angleModification = getAngleModification(expectedPosition, currentPosition, targetPosition);
 
-        Coordinate expectedPosition = getExpectedPosition(currentPosition, currentVelocity, currentAngle);
-        double optimalAngleModification = getAngleModification(expectedPosition, currentPosition, targetPosition);
-        double possibleAngleModification;
+            // Check if target is within steering range
+            if (Math.abs(angleModification) < MAX_STEERING_PER_ROUND) {
+                minimumMoveModification = new MoveModification(MAX_ACCELERATION_PER_ROUND, angleModification);
+            } else if (angleModification < 0) { // Target is outside steering range and we have to turn clockwise.
+                minimumMoveModification = new MoveModification(MAX_ACCELERATION_PER_ROUND, -MAX_STEERING_PER_ROUND);
+            } else { // Target is outside steering range and we have to turn counterclockwise.
+                minimumMoveModification = new MoveModification(MAX_ACCELERATION_PER_ROUND, MAX_STEERING_PER_ROUND);
+            }
+        } else {
+            for (double d = -MAX_STEERING_PER_ROUND; d <= MAX_STEERING_PER_ROUND; d += 2 * MAX_STEERING_PER_ROUND / 40) {
+                double tempAngle = currentAngle + d;
+                // Calculate expected positions for slower speeds
+                if (currentVelocity > MIN_SPEED) {
+                    Coordinate slowerPosition = getExpectedPosition(currentPosition, currentVelocity - MAX_ACCELERATION_PER_ROUND, tempAngle);
+                    double slowerDistance = targetPosition.distance(slowerPosition);
 
-        // Check if target is within steering range
-        if (Math.abs(optimalAngleModification) < MAX_STEERING_PER_ROUND) {
-            possibleAngleModification = optimalAngleModification;
-        } else if (optimalAngleModification < 0) { // Target is outside steering range and we have to turn clockwise.
-            possibleAngleModification = -MAX_STEERING_PER_ROUND;
-        } else { // Target is outside steering range and we have to turn counterclockwise.
-            possibleAngleModification = MAX_STEERING_PER_ROUND;
-        }
+                    if (slowerDistance < minimumDistance) {
+                        minimumDistance = slowerDistance;
+                        minimumMoveModification = new MoveModification(-MAX_ACCELERATION_PER_ROUND, d); // Since d is the
+                    }
+                }
 
-        double speedModification = 0;
-        // Calculate the expected position with no speed change
-        double noChangeDistance = getDistance(currentPosition, currentVelocity, possibleAngleModification, targetPosition);
-        if (noChangeDistance < minimumDistance) {
-            minimumDistance = noChangeDistance;
-            speedModification = 0;
-        }
+                // Calculate expected positions for faster speeds
+                if (currentVelocity < MAX_SPEED) {
+                    Coordinate fasterPosition = getExpectedPosition(currentPosition, currentVelocity + MAX_ACCELERATION_PER_ROUND, tempAngle);
+                    double fasterDistance = targetPosition.distance(fasterPosition);
 
-        // Calculate expected positions for slower speeds
-        if (currentVelocity > MIN_SPEED) {
-            double slowerDistance = getDistance(currentPosition, currentVelocity - MAX_ACCELERATION_PER_ROUND, possibleAngleModification, targetPosition);
-            if (slowerDistance < minimumDistance) {
-                minimumDistance = slowerDistance;
-                speedModification = -MAX_ACCELERATION_PER_ROUND;
+                    if (fasterDistance < minimumDistance) {
+                        minimumDistance = fasterDistance;
+                        minimumMoveModification = new MoveModification(MAX_ACCELERATION_PER_ROUND, d);
+                    }
+                }
+
+                // Calculate the expected position with no speed change
+                Coordinate expectedPosition = getExpectedPosition(currentPosition, currentVelocity, tempAngle);
+                double expectedDistance = targetPosition.distance(expectedPosition);
+
+                if (expectedDistance < minimumDistance) {
+                    minimumDistance = expectedDistance;
+                    minimumMoveModification = new MoveModification(0, d);
+                }
             }
         }
 
-        // Calculate expected positions for faster speeds
-        if (currentVelocity < MAX_SPEED) {
-            double fasterDistance = getDistance(currentPosition, currentVelocity + MAX_ACCELERATION_PER_ROUND, possibleAngleModification, targetPosition);
-            if (fasterDistance < minimumDistance) {
-                speedModification = MAX_ACCELERATION_PER_ROUND;
-            }
-        }
-
-        return new MoveModification(speedModification, possibleAngleModification);
+        return minimumMoveModification;
     }
 
     /**
@@ -212,11 +225,45 @@ public class NavigationComputer {
     }
 
     public static boolean isInDangerZone(Coordinate currentPos) {
-        for(Coordinate island : islandPositions) {
+        for (Coordinate island : islandPositions) {
             if (island.distance(currentPos) < DANGER_ZONE_THRESHOLD + islandSize) {
                 return true;
             }
         }
         return false;
+    }
+
+    public static Coordinate getIntermediateTarget(Coordinate submarinePos, Coordinate target) {
+        Coordinate islandPos = islandPositions.get(0);
+        for (Coordinate island : islandPositions) {
+            if (island.distance(submarinePos) < DANGER_ZONE_THRESHOLD + islandSize) {
+                islandPos = island;
+                break;
+            }
+        }
+        //int safeMapMaxX = (int)Math.floor(mapConfiguration.getWidth() - DANGER_ZONE_THRESHOLD);
+        //int safeMapMaxY = (int)Math.floor(mapConfiguration.getHeight() - DANGER_ZONE_THRESHOLD);
+
+        int safeIslandSize = (int)Math.ceil(islandSize + DANGER_ZONE_THRESHOLD);
+        //Envelope safeMap = new Envelope(DANGER_ZONE_THRESHOLD, safeMapMaxX, DANGER_ZONE_THRESHOLD, safeMapMaxY);
+        Geometry island = getIsland(islandPos, safeIslandSize);
+        //Geometry map = getMap(safeMap);
+
+        Point currentPosition = new GeometryFactory().createPoint(submarinePos);
+        LineString line = new GeometryFactory().createLineString(new Coordinate[]{submarinePos, island.getBoundary().getCoordinate()});
+        return line.getStartPoint().getCoordinate();
+    }
+
+    private static Geometry getIsland(Coordinate center, int size) {
+        GeometricShapeFactory islandFactory = new GeometricShapeFactory();
+        islandFactory.setCentre(center);
+        islandFactory.setSize(size);
+        return islandFactory.createEllipse();
+    }
+
+    private static Geometry getMap(Envelope map) {
+        GeometricShapeFactory mapFactory = new GeometricShapeFactory();
+        mapFactory.setEnvelope(map);
+        return mapFactory.createRectangle();
     }
 }

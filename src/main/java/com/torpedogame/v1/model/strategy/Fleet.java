@@ -44,15 +44,16 @@ public class Fleet {
     private final Integer TARGET_REACHING_THRESHOLD = 50;
 
     public Map<Integer, MoveModification> getMoveModifications() {
-        Coordinate t = getNextTarget();
-        if (hasReachedTarget(t)) {
-            if (t.equals2D(intermediateTarget)) {
-                intermediateTarget = null;
-            } else if (t.equals2D(this.target)) {
-                this.target = null;
-            }
-            return getMoveModifications();
+
+        if (hasReachedTarget(intermediateTarget)) {
+            intermediateTarget = null;
         }
+
+        if (hasReachedTarget(target)) {
+            target = null;
+        }
+
+        Coordinate t = getNextTarget();
         return getMoveModifications(t);
     }
 
@@ -140,8 +141,14 @@ public class Fleet {
         }
 
         if (isInDangerZone()) {
-            // TODO: navigationComputer.getIntermediateTarget()
-            intermediateTarget = new Coordinate(0,0);
+            Submarine inDanger = submarines.get(0);
+            for (Submarine s : submarines) {
+                if (NavigationComputer.isInDangerZone(s.getPosition())) {
+                    inDanger = s;
+                    break;
+                }
+            }
+            intermediateTarget = NavigationComputer.getIntermediateTarget(inDanger.getPosition(), target);
             return intermediateTarget;
         } else {
             // TODO: navigationComputer.getNextTarget()
