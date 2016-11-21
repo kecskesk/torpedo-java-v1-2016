@@ -24,6 +24,11 @@ public class Fleet {
     // The current movement target of the fleet
     // The fleet will move towards this coordinate in submarinesRelativePositions
     private Coordinate target;
+    
+    /**
+     * Contains the cool-down times of all the submarines in the list
+     */
+    private Map<Integer, Integer> sonarCooldowns = new HashMap<>();
 
     // The list of the fleet members
     // SHOULD BE SET BY EVERY ROUND
@@ -160,6 +165,10 @@ public class Fleet {
         return target;
     }
 
+    public Map<Integer, Integer> getSonarCooldowns() {
+        return sonarCooldowns;
+    }
+
     public void printFleetInfo() {
         for(Submarine s: submarines) printSubmarineInformation(s);
     }
@@ -185,5 +194,12 @@ public class Fleet {
         System.out.println("position: " + submarine.getPosition());
         System.out.println("angle: " + submarine.getAngle());
         System.out.println("speed: " + submarine.getVelocity());
+    }
+
+    public void updateCooldowns() {
+        sonarCooldowns = new HashMap<>();
+        for (Submarine sub: submarines) {
+            sonarCooldowns.put(sub.getId(), sub.getSonarCooldown());
+        }
     }
 }
