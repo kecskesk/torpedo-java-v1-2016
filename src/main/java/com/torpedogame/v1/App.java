@@ -167,6 +167,19 @@ public class App extends TimerTask
             gameEngine.shoot(selectedGameId, shipId,shootingAngle);
         }
 
+        // Extend sonars
+        fleet.updateCooldowns();
+        Map<Integer, Integer> sonarCooldowns = fleet.getSonarCooldowns();
+        for (Map.Entry<Integer, Integer> entry : sonarCooldowns.entrySet()) {
+            Integer subId = entry.getKey();
+            Integer cooldown = entry.getValue();
+            
+            // TODO implement more efficient ways to do this
+            if (cooldown == 0) {
+                gameEngine.extendSonar(selectedGameId, subId);
+            }
+        }
+        
         fleet.printFleetInfo();
 
             guiInfoMessage.setEntities(visibleEntities);
