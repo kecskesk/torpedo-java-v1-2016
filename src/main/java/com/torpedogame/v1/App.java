@@ -9,15 +9,16 @@ import com.torpedogame.v1.model.strategy.Fleet;
 import com.torpedogame.v1.model.utility.MoveModification;
 import com.torpedogame.v1.service.GameAPI;
 import com.torpedogame.v1.service.GameApiImpl;
+import com.torpedogame.v1.utility.ISonarComputer;
 
 import com.torpedogame.v1.utility.NavigationComputer;
 import com.torpedogame.v1.utility.ShootingComputer;
+import com.torpedogame.v1.utility.SimpleSonarComputer;
+import com.torpedogame.v1.utility.SonarComputer;
 import com.vividsolutions.jts.geom.Coordinate;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -39,13 +40,16 @@ public class App extends TimerTask
     private static GuiInfoMessage guiInfoMessage = new GuiInfoMessage();
     private static SparkServer sparkServer;
     private static int selectedGameId = -1;
+    
+    private static ISonarComputer sonarComputer;
 
     private static Fleet fleet = new Fleet();
 
     public static void main( String[] args )
     {
+        sonarComputer = new SimpleSonarComputer();
         gameEngine = new GameApiImpl();
-
+        
         // SETTING GAME ENGINE URL FROM ARGUMENT LIST
         GameApiImpl.setServerUrl(args[0]);
 
@@ -178,18 +182,8 @@ public class App extends TimerTask
             gameEngine.shoot(selectedGameId, shipId,shootingAngle);
         }
 
-        // Extend sonars
-        fleet.updateCooldowns();
-        Map<Integer, Integer> sonarCooldowns = fleet.getSonarCooldowns();
-        for (Map.Entry<Integer, Integer> entry : sonarCooldowns.entrySet()) {
-            Integer subId = entry.getKey();
-            Integer cooldown = entry.getValue();
-            
-            // TODO implement more efficient ways to do this
-            if (cooldown == 0) {
-                gameEngine.extendSonar(selectedGameId, subId);
-            }
-        }
+        // Extend the sonars efficiently
+        sonarComputer.calculateAndExtendFleetSonars(fleet, gameEngine, selectedGameId, mapConfiguration);
         
         fleet.printFleetInfo();
 
