@@ -202,4 +202,8 @@ public class Fleet {
             sonarCooldowns.put(sub.getId(), sub.getSonarCooldown());
         }
     }
+
+    public List<Submarine> getSubmarines() {
+        return submarines;
+    }
 }
