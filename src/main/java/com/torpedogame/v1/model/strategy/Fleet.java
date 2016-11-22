@@ -406,6 +406,20 @@ public class Fleet {
             }
         }
         
+        // no safe place stay on map at least
+        // speed 5 
+        modificationSpeed = maxModSpeed;
+        for (int i = -maxModAngle; i < maxModAngle; i++) {
+            modificationAngle = i;
+            
+            List<Coordinate> targets = NavigationComputer.getExpectedRoute(pos,currentSpeed + modificationSpeed, currentAngle + modificationAngle, 3);
+            boolean outOfMap = NavigationComputer.isTargetOnMap(targets.get(targets.size() - 1));
+            
+            if (!outOfMap) {
+                return new MoveModification(modificationSpeed, modificationAngle);
+            }
+        }
+        
         return new MoveModification(5, 20);
     }
     
@@ -426,7 +440,7 @@ public class Fleet {
         if (isInDanger >=0) {
             return true;
         } else {
-            List<Coordinate> targets = NavigationComputer.getExpectedRoute(pos,velocity,angle, isInDanger);
+            List<Coordinate> targets = NavigationComputer.getExpectedRoute(pos,velocity,angle, 3);
             boolean outOfMap = NavigationComputer.isTargetOnMap(targets.get(targets.size() - 1));
             return outOfMap;
         }
