@@ -87,7 +87,7 @@ public class App extends TimerTask
             NavigationComputer.setMaxSpeed(mapConfiguration.getMaxSpeed());
             // MinSpeed is not originated from the GameInfo, 0 was measured by hand.
             // By increasing this, it may be used to avoid slowing down in high (e.g. 180) degree turns.
-            NavigationComputer.setMinSpeed(0);//(mapConfiguration.getMaxAccelerationPerRound());
+            NavigationComputer.setMinSpeed(mapConfiguration.getMaxAccelerationPerRound());
 
             // Load map into NavComp
             NavigationComputer.setHeight(mapConfiguration.getHeight());
@@ -140,7 +140,7 @@ public class App extends TimerTask
         fleet.setSubmarines(submarineList);
 
         if(fleet.getPatrolClockwise() == null) { // In 1st round decide which direction to patrol
-            fleet.setPatrolClockwise(NavigationComputer.patrolClockwise(fleet.getFlagshipPosition()));
+            fleet.setPatrolClockwise(!NavigationComputer.patrolClockwise(fleet.getFlagshipPosition()));
         }
 
         // Set new target if needed

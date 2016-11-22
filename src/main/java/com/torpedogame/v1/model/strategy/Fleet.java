@@ -11,6 +11,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.math.Vector2D;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -254,7 +255,15 @@ public class Fleet {
         coordinates.add(new Coordinate(0, 0));
         coordinates.add(new Coordinate(-100, 100));
         coordinates.add(new Coordinate(100, 100));
-
+        
+        
+        // Low hp goes back
+        /*subs.sort(new Comparator<Submarine>() {
+            @Override
+            public int compare(Submarine o1, Submarine o2) {
+                return -o1.getHp().compareTo(o2.getHp());
+            }
+        });*/
 
         for (int i = 0; i < subs.size(); i++) {
             Submarine s = subs.get(i);
