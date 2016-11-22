@@ -11,7 +11,6 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.math.Vector2D;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,8 +100,9 @@ public class Fleet {
                     
                 }
             }
-            if(isInDanger >= 0){               
-                moveModifications.put(submarine.getId(), calculateEvadingModification(dangerousTorpedo, submarine));
+            if(isInDanger >= 0){
+                //moveModifications.put(submarine.getId(), calculateEvadingModification(dangerousTorpedo, submarine));
+                moveModifications.put(submarine.getId(), calculateEvadingModification2(dangerousTorpedo, submarine));
             }else {
                 if (target != null) {
                     if (submarines.indexOf(submarine) == 0) {
@@ -365,5 +365,70 @@ public class Fleet {
                 return -maxAngle;
             }
         }        
+    }
+
+    private MoveModification calculateEvadingModification2(Entity torpedo, Submarine subinDanger) {
+        Integer currentSpeed = getFlagship().getVelocity();
+        Integer currentAngle = subinDanger.getAngle();
+        
+        Integer modificationAngle;
+        Integer modificationSpeed;
+        
+        Integer maxModSpeed = mapConfiguration.getMaxAccelerationPerRound();
+        Integer maxModAngle = mapConfiguration.getMaxSteeringPerRound();        
+        
+        Coordinate pos = subinDanger.getPosition();
+                
+        // speed 5
+        modificationSpeed = maxModSpeed;
+        for (int i = -maxModAngle; i < maxModAngle; i++) {
+            modificationAngle = i;
+            if (!isDanger(pos, currentSpeed + modificationSpeed, currentAngle + modificationAngle, torpedo)) {
+                return new MoveModification(modificationSpeed, modificationAngle);
+            }
+        }
+        
+        // speed -5 
+        modificationSpeed = -maxModSpeed;
+        for (int i = -maxModAngle; i < maxModAngle; i++) {
+            modificationAngle = i;
+            if (!isDanger(pos, currentSpeed + modificationSpeed, currentAngle + modificationAngle, torpedo)) {
+                return new MoveModification(modificationSpeed, modificationAngle);
+            }
+        }
+        
+        // speed 0
+        modificationSpeed = 0;
+        for (int i = -maxModAngle; i < maxModAngle; i++) {
+            modificationAngle = i;
+            if (!isDanger(pos, currentSpeed + modificationSpeed, currentAngle + modificationAngle, torpedo)) {
+                return new MoveModification(modificationSpeed, modificationAngle);
+            }
+        }
+        
+        return new MoveModification(5, 20);
+    }
+    
+    private boolean isDanger(Coordinate pos, int velocity, int angle, Entity torpedo) {
+        Submarine sub = new Submarine();
+        sub.setAngle(angle);
+        sub.setVelocity(velocity);
+        sub.setPosition(pos);        
+        
+        int isInDanger = -1;
+        int dangerTemp = ShootingComputer.isTorpedoDangerous(sub, torpedo, 6);
+        if (dangerTemp != -1) {
+            if (isInDanger == -1 || dangerTemp < isInDanger) {
+                isInDanger = dangerTemp;
+            }
+        }
+        
+        if (isInDanger >=0) {
+            return true;
+        } else {
+            List<Coordinate> targets = NavigationComputer.getExpectedRoute(pos,velocity,angle, isInDanger);
+            boolean outOfMap = NavigationComputer.isTargetOnMap(targets.get(targets.size() - 1));
+            return outOfMap;
+        }
     }
 }
