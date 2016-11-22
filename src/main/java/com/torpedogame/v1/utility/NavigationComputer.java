@@ -338,7 +338,7 @@ public class NavigationComputer {
     //  2 | 1
     // -------
     //  3 | 4
-    private static int getQuarter(Coordinate position) {
+    public static int getQuarter(Coordinate position) {
         if (position.x > width / 2 && position.y > height / 2)  { // RIGHT UP
             return 1;
         } else if (position.x < width / 2 && position.y > height / 2) {  // LEFT UP

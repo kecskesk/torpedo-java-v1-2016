@@ -181,12 +181,31 @@ public class App extends TimerTask
         }
 
         // Fire torpedoes
-        Map<Integer, Double> shootingAngles = fleet.getShootingAngles();
-        for (Integer shipId: shootingAngles.keySet()) {
-            Double shootingAngle = shootingAngles.get(shipId);
-            gameEngine.shoot(selectedGameId, shipId,shootingAngle);
+        //  2 | 1
+        // -------
+        //  3 | 4
+        if (currentGame.getRound() == 0) {
+            int quarter = NavigationComputer.getQuarter(fleet.getFlagshipPosition());
+            double shootAngle;
+            if (quarter == 1) {
+                shootAngle = 240;
+            } else if (quarter == 2) {
+                shootAngle = 300;
+            } else if (quarter == 3) {
+                shootAngle = 60;
+            } else {
+                shootAngle = 120;
+            }
+            for (Submarine s: submarineList) {
+                gameEngine.shoot(selectedGameId, s.getId(), shootAngle);
+            }
+        } else {
+            Map<Integer, Double> shootingAngles = fleet.getShootingAngles();
+            for (Integer shipId : shootingAngles.keySet()) {
+                Double shootingAngle = shootingAngles.get(shipId);
+                gameEngine.shoot(selectedGameId, shipId, shootingAngle);
+            }
         }
-
         // Extend the sonars efficiently
         sonarComputer.calculateAndExtendFleetSonars(fleet, gameEngine, selectedGameId, mapConfiguration);
         
