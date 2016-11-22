@@ -8,6 +8,7 @@ import com.vividsolutions.jts.operation.BoundaryOp;
 import com.vividsolutions.jts.operation.distance.DistanceOp;
 import com.vividsolutions.jts.util.GeometricShapeFactory;
 
+import javax.print.attribute.standard.MediaSize;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -295,6 +296,33 @@ public class NavigationComputer {
     }
 
     //  2 | 1
+    // -------
+    //  3 | 4
+//    public static Coordinate getNextPatrolTarget2 (Coordinate startingPosition, boolean patrolClockwise, Coordinate reachedTarget) {
+//        if (reachedTarget == null) {
+//            double minDist = 10000000;
+//            Coordinate minTarget = new Coordinate();
+//            for (Coordinate c: PATROL_COORDINATES ) {
+//                if (c.distance(startingPosition) < minDist){
+//                    minDist = c.distance(startingPosition);
+//                    minTarget = c;
+//                }
+//            }
+//            return minTarget;
+//        }
+//        int reachedTargetIndex = PATROL_COORDINATES.indexOf(reachedTarget);
+//        int nextIndex = 0;
+//        if(reachedTargetIndex > -1) {
+//            if (patrolClockwise)  {
+//                nextIndex = reachedTargetIndex == 0? PATROL_COORDINATES.size()-1 : reachedTargetIndex-1;
+//            } else {
+//                nextIndex = reachedTargetIndex == PATROL_COORDINATES.size()-1? 0 : reachedTargetIndex + 1;
+//            }
+//        }
+//        return PATROL_COORDINATES.get(nextIndex);
+//    }
+
+        //  2 | 1
     // -------
     //  3 | 4
     public static boolean patrolClockwise(Coordinate startingPosition) {

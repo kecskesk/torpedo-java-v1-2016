@@ -253,8 +253,8 @@ public class Fleet {
         // Set relative position of submarines
         List<Coordinate> coordinates = new ArrayList<>();
         coordinates.add(new Coordinate(0, 0));
-        coordinates.add(new Coordinate(-100, 100));
-        coordinates.add(new Coordinate(100, 100));
+        coordinates.add(new Coordinate(-100, 150));
+        coordinates.add(new Coordinate(100, 50));
         
         
         // Low hp goes back
@@ -345,10 +345,10 @@ public class Fleet {
         Integer difference2 = (360 - torpedoAngle) - currentAngle;
                 
         if (difference1 < difference2) {
-            // torpedoAngle-hez húzunk
+            // torpedoAngle-hez hï¿½zunk
             return pullToAngle(torpedoAngle, currentAngle);            
         } else {
-            // torpedoAngle ellentétéhez húzunk            
+            // torpedoAngle ellentï¿½tï¿½hez hï¿½zunk            
             return pullToAngle(360 - torpedoAngle, currentAngle);            
         }
     }
