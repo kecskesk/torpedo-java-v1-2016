@@ -68,7 +68,8 @@ public class Fleet {
         }
 
         if (hasReachedTarget(target)) {
-            target = NavigationComputer.getNextPatrolTarget(getFlagshipPosition(), getPatrolClockwise());
+//            target = NavigationComputer.getNextPatrolTarget(getFlagshipPosition(), getPatrolClockwise());
+            target = NavigationComputer.getMapCenter();
         }
 
         Coordinate t = getNextTarget();

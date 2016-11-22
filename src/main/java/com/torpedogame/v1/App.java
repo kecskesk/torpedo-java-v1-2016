@@ -138,6 +138,7 @@ public class App extends TimerTask
             return;
         }
         fleet.setSubmarines(submarineList);
+        if (!fleet.hasTarget()) fleet.setTarget(new Coordinate(mapConfiguration.getWidth()/2, fleet.getFlagshipPosition().y));
 
         if(fleet.getPatrolClockwise() == null) { // In 1st round decide which direction to patrol
             fleet.setPatrolClockwise(!NavigationComputer.patrolClockwise(fleet.getFlagshipPosition()));

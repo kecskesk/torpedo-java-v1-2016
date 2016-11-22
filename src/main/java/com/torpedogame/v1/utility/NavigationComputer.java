@@ -335,4 +335,8 @@ public class NavigationComputer {
         PATROL_COORDINATES.add(new Coordinate(width - 200, 200));           // IV quarter
 
     }
+
+    public static Coordinate getMapCenter () {
+        return new Coordinate(width/2 + Math.random() * 50, height/2 + Math.random() * 50);
+    }
 }
