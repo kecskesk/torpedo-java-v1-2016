@@ -3,9 +3,12 @@ package com.torpedogame.v1.model.strategy;
 import com.torpedogame.v1.model.protocol.Entity;
 import com.torpedogame.v1.model.protocol.Submarine;
 import com.torpedogame.v1.model.utility.MoveModification;
+import com.torpedogame.v1.utility.GeometryUtility;
 import com.torpedogame.v1.utility.NavigationComputer;
 import com.torpedogame.v1.utility.ShootingComputer;
+import com.vividsolutions.jts.algorithm.Angle;
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.math.Vector2D;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,11 +45,9 @@ public class Fleet {
     // SHOULD BE SET BY EVERY ROUND
     private List <Entity> visibleEntities;
 
-    private int fleetSpeed = 10;
+    private int fleetSpeed = 15;
 
-    private String formation;
-
-    private final Integer TARGET_REACHING_THRESHOLD = 50;
+    private final Integer TARGET_REACHING_THRESHOLD = 30;
 
     private Boolean patrolClockwise;
 
@@ -65,7 +66,7 @@ public class Fleet {
         }
 
         if (hasReachedTarget(target)) {
-            target = null;
+            target = NavigationComputer.getNextPatrolTarget(getFlagshipPosition(), getPatrolClockwise());
         }
 
         Coordinate t = getNextTarget();
@@ -80,28 +81,50 @@ public class Fleet {
         Map<Integer, MoveModification> moveModifications = new HashMap<>();
         // TODO Check for dangerous torpedoes
         // TODO Add rotation of the formation
+        // TODO CRITICAL Robi said he did something to make the ships start with velocity, investigate it may have a bug, one of the ship's speed was jumping between 0 and 5... But only MAY, no it worked correctly
         // For each registered ship
         for (Submarine submarine : submarines) {
-            if (target != null) {
-                if (submarines.indexOf(submarine) == 0) {
-                    MoveModification flagshipMM = NavigationComputer.getMoveModification(submarine.getPosition(), target, submarine.getVelocity(), submarine.getAngle());
-                    System.out.println("QWER " + flagshipMM);
-                    moveModifications.put(submarine.getId(), flagshipMM);
-                } else {
-                    // Other MoveModification
-                    Coordinate relativePosition = new Coordinate();
-                    // Calculate target
-                    if (submarinesRelativePositions.containsKey(submarine.getId())) {
-                        relativePosition = submarinesRelativePositions.get(submarine.getId());
-                    }
-                    Coordinate flagshipCoordinate = submarines.get(0).getPosition();
-                    Coordinate targetCoordinate = new Coordinate(flagshipCoordinate.x + relativePosition.x, flagshipCoordinate.y + relativePosition.y);
-                    MoveModification asd = NavigationComputer.getMoveModification(submarine.getPosition(), targetCoordinate, submarine.getVelocity(), submarine.getAngle());
-                    System.out.println("QWER " + asd);
-                    moveModifications.put(submarine.getId(),asd);
+            int isInDanger = -1;
+            for (Entity entity: visibleEntities) {
+                System.out.println("domis " + entity.getType());
+                if (entity.getType().equals("Torpedo")) {
+                    isInDanger = ShootingComputer.isTorpedoDangerous(submarine, entity, 6);
                 }
-            } else if (submarine.getVelocity() > 0) {
-                moveModifications.put(submarine.getId(), NavigationComputer.getSlowerMoveModification());
+            }
+            if(isInDanger >= 0){
+                // TODO get evading move modification object
+                moveModifications.put(submarine.getId(), new MoveModification(-5, 20));
+            }else {
+                if (target != null) {
+                    if (submarines.indexOf(submarine) == 0) {
+                        // FLAGSHIP
+                        MoveModification flagshipMM = NavigationComputer.getMoveModification(submarine.getPosition(), target, submarine.getVelocity(), submarine.getAngle());
+                        System.out.println("QWER " + flagshipMM);
+                        if (submarine.getVelocity() + flagshipMM.getSpeed() > fleetSpeed) flagshipMM.setSpeed(0);
+                        moveModifications.put(submarine.getId(), flagshipMM);
+                    } else {
+                        // Other MoveModification
+                        Coordinate relativePosition = new Coordinate();
+                        // Calculate target
+                        if (submarinesRelativePositions.containsKey(submarine.getId())) {
+                            relativePosition = submarinesRelativePositions.get(submarine.getId());
+                        }
+                        Coordinate flagshipCoordinate = submarines.get(0).getPosition();
+                        //Rotate targetCoordinate with the angle between FLAGSHIP and target
+                        double rotation = Angle.angle(flagshipCoordinate, target) - Math.PI / 2; // Don't know why PI/2 needs to subtracted but it works which is nice
+                        Coordinate originalTargetCoordinate = new Coordinate(flagshipCoordinate.x + relativePosition.x, flagshipCoordinate.y + relativePosition.y);
+
+                        // This is some wierd magic I did last night
+                        Vector2D rotatedTarget = new Vector2D(flagshipCoordinate, originalTargetCoordinate).rotate(rotation).add(new Vector2D(flagshipCoordinate));
+
+                        Coordinate targetCoordinate = new Coordinate(rotatedTarget.getX(), rotatedTarget.getY());
+                        MoveModification asd = NavigationComputer.getMoveModification(submarine.getPosition(), targetCoordinate, submarine.getVelocity(), submarine.getAngle());
+                        System.out.println("QWER " + asd);
+                        moveModifications.put(submarine.getId(), asd);
+                    }
+                } else if (submarine.getVelocity() > 0) {
+                    moveModifications.put(submarine.getId(), NavigationComputer.getSlowerMoveModification());
+                }
             }
         }
         return moveModifications;
@@ -141,34 +164,34 @@ public class Fleet {
             return true;
         }
 
-        for (Submarine sub : submarines) {
-            Coordinate relPos = submarinesRelativePositions.get(sub.getId());
-            Coordinate targetPos = new Coordinate(target.x + relPos.x, target.y + relPos.y);
-            if(sub.getPosition().distance(targetPos) > TARGET_REACHING_THRESHOLD) return false;
-        }
-
+//        for (Submarine sub : submarines) {
+//            Coordinate relPos = submarinesRelativePositions.get(sub.getId());
+//            Coordinate targetPos = new Coordinate(target.x + relPos.x, target.y + relPos.y);
+//            if(sub.getPosition().distance(targetPos) > TARGET_REACHING_THRESHOLD) return false;
+//        }
+        if (getFlagshipPosition().distance(target) > TARGET_REACHING_THRESHOLD) return false;
         return true;
     }
 
     private Coordinate getNextTarget() {
-        if (intermediateTarget != null) {
-            return intermediateTarget;
-        }
+//        if (intermediateTarget != null) {
+//            return intermediateTarget;
+//        }
 
-        if (isInDangerZone()) {
-            Submarine inDanger = submarines.get(0);
-            for (Submarine s : submarines) {
-                if (NavigationComputer.isInDangerZone(s.getPosition())) {
-                    inDanger = s;
-                    break;
-                }
-            }
-            intermediateTarget = NavigationComputer.getIntermediateTarget(inDanger.getPosition(), target);
-            return intermediateTarget;
-        } else {
+//        if (isInDangerZone()) {
+//            Submarine inDanger = submarines.get(0);
+//            for (Submarine s : submarines) {
+//                if (NavigationComputer.isInDangerZone(s.getPosition())) {
+//                    inDanger = s;
+//                    break;
+//                }
+//            }
+//            intermediateTarget = NavigationComputer.getIntermediateTarget(inDanger.getPosition(), target);
+//            return intermediateTarget;
+//        } else {
             // TODO: navigationComputer.getNextTarget()
-            return target != null ? target : new Coordinate(1,1);
-        }
+            return target; //!= null ? target : new Coordinate(1,1);
+//        }
     }
 
     /**
@@ -186,8 +209,8 @@ public class Fleet {
         // Set relative position of submarines
         List<Coordinate> coordinates = new ArrayList<>();
         coordinates.add(new Coordinate(0, 0));
-        coordinates.add(new Coordinate(100, -100));
         coordinates.add(new Coordinate(-100, 100));
+        coordinates.add(new Coordinate(100, 100));
 
 
         for (int i = 0; i < subs.size(); i++) {

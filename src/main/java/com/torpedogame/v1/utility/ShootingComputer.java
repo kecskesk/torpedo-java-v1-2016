@@ -1,6 +1,9 @@
 package com.torpedogame.v1.utility;
 
+import com.torpedogame.v1.model.protocol.Entity;
+import com.torpedogame.v1.model.protocol.Submarine;
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.LineSegment;
 
 import java.util.List;
 
@@ -11,6 +14,8 @@ public class ShootingComputer {
     private static int TORPEDO_SPEED;
     private static int TORPEDO_RANGE;
     private static int TORPEDO_EXPLOSION_RADIUS;
+    private static int SHIP_SIZE;
+
 
     public static void setTorpedoSpeed(int torpedoSpeed) {
         ShootingComputer.TORPEDO_SPEED = torpedoSpeed;
@@ -22,6 +27,10 @@ public class ShootingComputer {
 
     public static void setTorpedoExplosionRadius(int torpedoExplosionRadius) {
         ShootingComputer.TORPEDO_EXPLOSION_RADIUS = torpedoExplosionRadius;
+    }
+
+    public static void setShipSize(int shipSize) {
+        SHIP_SIZE = shipSize;
     }
 
     /**
@@ -70,5 +79,39 @@ public class ShootingComputer {
         return Math.round(GeometryUtility.getDegree(currentPosition, impactPosition) * 100.0) / 100.0;
     }
 
-    public static boolean isTorpedoDangerous() {return false;}
+    /**
+     * Return s -1 if the torpedo will not hit is on our current route, otherwise
+     * this return the number of turns left until IMPACT.
+     *
+     * @param currentPos
+     * @param currentVelocity
+     * @param currentAngle
+     * @param targetPos
+     * @param targetVelocity
+     * @param targetAngle
+     * @param rounds
+     * @return
+     */
+    public static int isTorpedoDangerous(
+        Submarine submarine,
+        Entity entity,
+        int rounds) {
+        Coordinate currentPos = submarine.getPosition();
+        double currentVelocity = submarine.getVelocity();
+        double currentAngle = submarine.getAngle();
+        Coordinate targetPos = entity.getPosition();
+        double targetVelocity = entity.getVelocity();
+        double targetAngle = entity.getAngle();
+
+        List<Coordinate> currentRoute = NavigationComputer.getExpectedRoute(currentPos,currentVelocity,currentAngle, rounds);
+        List<Coordinate> torpedoRoute = NavigationComputer.getExpectedRoute(targetPos, targetVelocity, targetAngle, rounds);
+        // JTS is very cool check this LineSegment distance function
+        // http://tsusiatsoftware.net/jts/javadoc/com/vividsolutions/jts/geom/LineSegment.html#distance(com.vividsolutions.jts.geom.Coordinate)
+        for(int i = 1; i < currentRoute.size(); i ++) {
+            LineSegment lineSegment = new LineSegment(torpedoRoute.get(i), torpedoRoute.get(i-1));
+            Coordinate expectedPos = currentRoute.get(i);
+            if (lineSegment.distance(expectedPos) < SHIP_SIZE) return i;
+        }
+        return -1;
+    }
 }

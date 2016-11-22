@@ -101,6 +101,8 @@ public class App extends TimerTask
             ShootingComputer.setTorpedoRange(mapConfiguration.getTorpedoRange());
             ShootingComputer.setTorpedoSpeed(mapConfiguration.getTorpedoSpeed());
             ShootingComputer.setTorpedoExplosionRadius(mapConfiguration.getTorpedoExplosionRadius());
+            ShootingComputer.setShipSize(mapConfiguration.getSubmarineSize());
+
             // Start executing the steps for each round
             // This will start the execution immediately, if a little delay is needed,
             // increase the second parameter of the schedule function.
@@ -147,9 +149,9 @@ public class App extends TimerTask
             sparkServer.clearMoveRequest();
         }
 
-        if(!fleet.hasTarget()) {
-            fleet.setTarget(NavigationComputer.getNextPatrolTarget(fleet.getFlagshipPosition(), fleet.getPatrolClockwise()));
-        }
+//        if(!fleet.hasTarget()) {
+//            fleet.setTarget(NavigationComputer.getNextPatrolTarget(fleet.getFlagshipPosition(), fleet.getPatrolClockwise()));
+//        }
 
         // Gather sonar information for fleet
         List<Entity> visibleEntities = new ArrayList<>();
@@ -168,6 +170,8 @@ public class App extends TimerTask
             }
         }
         fleet.setVisibleEntities(visibleEntities);
+
+        // Move fleet
         Map<Integer, MoveModification> moveModifications = fleet.getMoveModifications();
         for (Integer shipId : moveModifications.keySet()) {
             MoveModification moveModification = moveModifications.get(shipId);
