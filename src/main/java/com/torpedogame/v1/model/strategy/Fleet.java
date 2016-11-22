@@ -100,9 +100,10 @@ public class Fleet {
                     
                 }
             }
-            if(isInDanger >= 0){
+            int borderLimit = 50;
+            if(isInDanger >= 0 && !closeToBorder(submarine, borderLimit)){
                 //moveModifications.put(submarine.getId(), calculateEvadingModification(dangerousTorpedo, submarine));
-                moveModifications.put(submarine.getId(), calculateEvadingModification2(dangerousTorpedo, submarine));
+                moveModifications.put(submarine.getId(), calculateEvadingModification2(dangerousTorpedo, submarine));                
             }else {
                 if (target != null) {
                     if (submarines.indexOf(submarine) == 0) {
@@ -444,5 +445,14 @@ public class Fleet {
             boolean outOfMap = NavigationComputer.isTargetOnMap(targets.get(targets.size() - 1));
             return outOfMap;
         }
+    }
+
+    private boolean closeToBorder(Submarine submarine, int limit) {
+        double x = submarine.getPosition().x;
+        double y = submarine.getPosition().y;
+        return (
+                   (x < limit || x > (mapConfiguration.getWidth() - limit)) 
+                || (y < limit || y > (mapConfiguration.getHeight() - limit))
+        );
     }
 }
