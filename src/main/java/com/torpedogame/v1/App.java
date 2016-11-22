@@ -55,8 +55,8 @@ public class App extends TimerTask
         System.out.println( "The torpedo program is starting..." );
         
         // Create a game
-        createdGame = gameEngine.createGame();
-        System.out.println(createdGame.toString());
+        /*createdGame = gameEngine.createGame();
+        System.out.println(createdGame.toString());*/
 
         // Check games
         GameListResponse gameList = gameEngine.gameList();
@@ -76,6 +76,8 @@ public class App extends TimerTask
             gameInfoResponse = gameEngine.gameInfo(selectedGameId);
             MapConfiguration mapConfiguration = gameInfoResponse.getGame().getMapConfiguration();
 
+            fleet.setMapConfiguration(mapConfiguration);
+            
             sparkServer = new SparkServer(mapConfiguration.getWidth(), mapConfiguration.getHeight());
             sparkServer.start();
             

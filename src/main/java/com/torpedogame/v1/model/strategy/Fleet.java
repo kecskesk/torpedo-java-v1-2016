@@ -1,9 +1,9 @@
 package com.torpedogame.v1.model.strategy;
 
+import com.torpedogame.v1.model.game_control.MapConfiguration;
 import com.torpedogame.v1.model.protocol.Entity;
 import com.torpedogame.v1.model.protocol.Submarine;
 import com.torpedogame.v1.model.utility.MoveModification;
-import com.torpedogame.v1.utility.GeometryUtility;
 import com.torpedogame.v1.utility.NavigationComputer;
 import com.torpedogame.v1.utility.ShootingComputer;
 import com.vividsolutions.jts.algorithm.Angle;
@@ -22,7 +22,7 @@ import java.util.Map;
  */
 public class Fleet {
     // This map stores the submarines with their relative position to the FLAGSHIP
-    private Map<Integer, Coordinate> submarinesRelativePositions = new HashMap<>();
+    private final Map<Integer, Coordinate> submarinesRelativePositions = new HashMap<>();
 
     // The current movement target of the fleet
     // The fleet will move towards this coordinate in submarinesRelativePositions
@@ -50,6 +50,7 @@ public class Fleet {
     private final Integer TARGET_REACHING_THRESHOLD = 30;
 
     private Boolean patrolClockwise;
+    private MapConfiguration mapConfiguration;
 
     public Boolean getPatrolClockwise() {
         return patrolClockwise;
@@ -85,15 +86,22 @@ public class Fleet {
         // For each registered ship
         for (Submarine submarine : submarines) {
             int isInDanger = -1;
+            Entity dangerousTorpedo = null;
             for (Entity entity: visibleEntities) {
                 System.out.println("domis " + entity.getType());
                 if (entity.getType().equals("Torpedo")) {
-                    isInDanger = ShootingComputer.isTorpedoDangerous(submarine, entity, 6);
+                    int dangerTemp = ShootingComputer.isTorpedoDangerous(submarine, entity, 6);
+                    if (dangerTemp != -1) {
+                        if (isInDanger == -1 || dangerTemp < isInDanger) {
+                            isInDanger = dangerTemp;
+                            dangerousTorpedo = entity;
+                        }
+                    }
+                    
                 }
             }
-            if(isInDanger >= 0){
-                // TODO get evading move modification object
-                moveModifications.put(submarine.getId(), new MoveModification(-5, 20));
+            if(isInDanger >= 0){               
+                moveModifications.put(submarine.getId(), calculateEvadingModification(dangerousTorpedo, submarine));
             }else {
                 if (target != null) {
                     if (submarines.indexOf(submarine) == 0) {
@@ -128,6 +136,41 @@ public class Fleet {
             }
         }
         return moveModifications;
+    }
+
+    private MoveModification calculateEvadingModification(Entity torpedo, Submarine subinDanger) {
+        Integer currentSpeed = getFlagship().getVelocity();
+        Integer currentAngle = subinDanger.getAngle();
+        Integer maxSpeed = mapConfiguration.getMaxSpeed();
+        
+        Integer modificationAngle;
+        Integer modificationSpeed;
+        
+        Integer maxModSpeed = mapConfiguration.getMaxAccelerationPerRound();
+        Integer maxModAngle = mapConfiguration.getMaxSteeringPerRound();
+        
+        Integer torpedoAngle = torpedo.getAngle();
+        Integer torpedoSpeed = torpedo.getVelocity();
+        
+        Integer bestAngleMod = toParellel(torpedoAngle, currentAngle);
+        
+        // we are faster than half we should slow down
+        if (currentSpeed > (maxSpeed / 2)) {
+            modificationSpeed = -maxModSpeed;
+        } else {
+            modificationSpeed = maxModSpeed;
+        }
+        
+        
+        
+        // TODO what else?
+        modificationAngle = maxModAngle;
+        
+        MoveModification evadingModification = new MoveModification(modificationSpeed, modificationAngle);
+        
+        // TODO leads to outofmap?
+        
+        return evadingModification;
     }
 
     /**
@@ -250,6 +293,10 @@ public class Fleet {
         return submarines.get(0).getPosition();
     }
 
+    public Submarine getFlagship() {
+        return submarines.get(0);
+    }
+
     public boolean hasTarget () {
         return target != null;
     }
@@ -278,5 +325,36 @@ public class Fleet {
 
     public List<Submarine> getSubmarines() {
         return submarines;
+    }
+
+    public void setMapConfiguration(MapConfiguration mapConfiguration) {
+        this.mapConfiguration = mapConfiguration;
+    }
+
+    private Integer toParellel(Integer torpedoAngle, Integer currentAngle) {
+        Integer difference1 = torpedoAngle - currentAngle;
+        Integer difference2 = (360 - torpedoAngle) - currentAngle;
+                
+        if (difference1 < difference2) {
+            // torpedoAngle-hez húzunk
+            return pullToAngle(torpedoAngle, currentAngle);            
+        } else {
+            // torpedoAngle ellentétéhez húzunk            
+            return pullToAngle(360 - torpedoAngle, currentAngle);            
+        }
+    }
+
+    private Integer pullToAngle(Integer targetAngle, Integer currentAngle) {
+        Integer maxAngle = mapConfiguration.getMaxSteeringPerRound();
+        Integer diff = (targetAngle - currentAngle);
+        if (Math.abs(diff) < maxAngle) {
+            return diff;
+        } else {
+            if (diff > 0) {
+                return maxAngle;
+            } else {
+                return -maxAngle;
+            }
+        }        
     }
 }
